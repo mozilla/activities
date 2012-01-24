@@ -1,0 +1,17 @@
+{
+  "project": [
+    "git", 
+    "https://github.com/mozilla/activities.git", 
+    "develop", 
+    ""
+  ], 
+  "location": "deps", 
+  "projects": [
+    [
+      "git", 
+      "https://github.com/mozilla/addon-sdk.git", 
+      "master", 
+      ""
+    ]
+  ]
+}
