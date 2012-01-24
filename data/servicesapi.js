@@ -22,22 +22,6 @@ unsafeWindow.navigator.wrappedJSObject.mozActivities.services = {
       callback: func
     }
     self.port.emit("owa.service.register.handler", activity);
-  },
-  // the service is making an oauth call, setup a result callback mechanism then make the call.
-  // the service will already have oauth credentials from an early login process initiated by
-  // our mediator
-  oauth: {
-    call: function(svc, data, callback) {
-      callid++;
-      self.port.once("owa.service.oauth.call.result."+callid, function(result) {
-        callback(result);
-      });
-      self.port.emit('owa.service.oauth.call', {
-        svc: svc,
-        data: data,
-        result: "owa.service.oauth.call.result."+callid
-      });
-    }
   }
 }
 

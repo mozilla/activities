@@ -19,11 +19,10 @@ ifneq ($(MOZ_BINARY),)
 endif
 
 addon_sdk := $(deps)/addon-sdk/bin
-oauthorizer := $(deps)/oauthorizer
 activities := $(TOPSRCDIR)
 
 pkgdir := $(activities)
-cfx_args :=  --pkgdir=$(pkgdir) $(binary) $(profile) --package-path=$(oauthorizer) --binary-args="-console -purgecaches $(BINARYARGS)"
+cfx_args :=  --pkgdir=$(pkgdir) $(binary) $(profile) --binary-args="-console -purgecaches $(BINARYARGS)"
 
 test_args :=
 ifneq ($(TEST),)

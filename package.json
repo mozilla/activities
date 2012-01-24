@@ -6,6 +6,6 @@
     "fullName": "Web Activities for Firefox", 
     "id": "webactivities@mozillalabs.com", 
     "description": "Adds Web Activities to Firefox.",
-    "dependencies": ["api-utils", "addon-kit", "oauthorizer"],
+    "dependencies": ["api-utils", "addon-kit"],
     "main": "./main.js"
 }
