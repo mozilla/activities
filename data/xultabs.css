@@ -49,3 +49,7 @@
 #activities-tabs .tabbrowser-tab .tab-label {
   display: none;
 }
+
+#activities-tabbrowser {
+  margin: 5px 5px 5px 0;
+}
