@@ -15,12 +15,12 @@
   padding: 10px 3px;
   /*background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #515151), color-stop(100%, #2b2b2b));*/
   /*background: -moz-linear-gradient(center top , #515151 0%, #2b2b2b 100%);*/
-  /*border-right: 0;*/
+  border-right: 0;
 }
 
 #activities-tabs .tabbrowser-arrowscrollbox > scrollbox {
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 #activities-tabs .tabs-newtab-button {
@@ -43,5 +43,9 @@
 #activities-tabs .tab-background-start,
 #activities-tabs .tab-background-middle,
 #activities-tabs .tab-background-end {
-    background-color: transparent !important;
+    background-color: transparent;
+}
+
+#activities-tabs .tabbrowser-tab .tab-label {
+  display: none;
 }
