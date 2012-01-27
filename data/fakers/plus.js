@@ -1,4 +1,8 @@
 
 self.port.on("activity", function(activity) {
-  unsafeWindow.location = "https://plusone.google.com/_/+1/confirm?hl=en&url="+activity.data;
+  let loc = "https://plusone.google.com/_/+1/confirm?hl=en&url="+activity.data;
+  if (loc != unsafeWindow.location) {
+    console.log("updating location "+window.location)
+    unsafeWindow.location = loc;
+  }
 });

@@ -40,6 +40,10 @@
   background-color: transparent;
 }
 
+#activities-tabs .tabbrowser-tab[selected="true"] > .tab-stack {
+  box-shadow: 0 0 1px -moz-mac-focusring inset, 0 0 4px 1px -moz-mac-focusring, 0 0 1.5px 1px -moz-mac-focusring;
+}
+
 #activities-tabs .tab-background-start,
 #activities-tabs .tab-background-middle,
 #activities-tabs .tab-background-end {
