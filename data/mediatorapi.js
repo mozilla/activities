@@ -2,6 +2,8 @@
 /* vim: set ts=2 et sw=2 tw=80: */
 
 // Insert the mediator api into unsafeWindow
+if (!unsafeWindow.navigator.wrappedJSObject.mozActivities)
+  unsafeWindow.navigator.wrappedJSObject.mozActivities = {};
 if (!unsafeWindow.navigator.wrappedJSObject.mozActivities.mediation)
   unsafeWindow.navigator.wrappedJSObject.mozActivities.mediation = {};
 

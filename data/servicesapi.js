@@ -1,3 +1,5 @@
+if (!unsafeWindow.navigator.wrappedJSObject.mozActivities)
+  unsafeWindow.navigator.wrappedJSObject.mozActivities = {};
 
 var activities = {};
 var origin = null;
