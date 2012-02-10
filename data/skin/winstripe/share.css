@@ -1,0 +1,17 @@
+#share-activity-button {
+  list-style-image: url("../winstripe/share-button.png");
+  width: auto;
+  height: auto;
+}
+
+#share-activity-button[checked] {
+  list-style-image: url("../winstripe/share-button-active.png");
+}
+
+#share-activity-button[status="start"] {
+  list-style-image: url("../winstripe/share-button-sharing.png");
+}
+
+#share-activity-button[status="finished"] {
+  list-style-image: url("../winstripe/share-button-shared.png");
+}

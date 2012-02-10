@@ -1,0 +1,18 @@
+#share-activity-button {
+  list-style-image: url("../gnomestripe/share-button.png");
+  width: auto;
+  height: auto;
+  padding: 1px;
+}
+
+#share-activity-button[checked] {
+  list-style-image: url("../gnomestripe/share-button-active.png");
+}
+
+#share-activity-button[status="start"] {
+  list-style-image: url("../gnomestripe/share-button-sharing.png");
+}
+
+#share-activity-button[status="finished"] {
+  list-style-image: url("../gnomestripe/share-button-shared.png");
+}
