@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>Page Title</title>
+</head>
+
+<body>
+
+<script>
+window.addEventListener("message", function(event) {
+  console.log("test.html got message");
+  console.log(JSON.stringify(event.data) + " from "+(event.source?event.source.location:"addon"));
+}, false);
+window.addEventListener("load", function() {
+  console.log("try to send message from test.html");
+  try {
+    window.postMessage(JSON.stringify({test:"tester.html"}), "*");
+  } catch(e) {
+    console.log(e);
+  }
+}, true);
+    
+</script>
+
+</body>
+</html>
