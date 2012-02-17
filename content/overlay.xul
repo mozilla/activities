@@ -15,7 +15,6 @@
     Cu.import("resource://activities/lib/defaultServices.js", tmp);
     Cu.import("resource://activities/lib/services.js", tmp);
     let { registerDefaultServices, ServiceInvocationHandler } = tmp;
-    dump(ServiceInvocationHandler+"\n");
     registerDefaultServices();
     var serviceInvocationHandler = new ServiceInvocationHandler(window);
     
