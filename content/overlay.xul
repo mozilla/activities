@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay [
+<!ENTITY % shareDTD SYSTEM "chrome://activities/locale/share.dtd">
+%shareDTD;
+]>
+
+<?xml-stylesheet href="chrome://activities/skin/xultabs.css" type="text/css"?>
+<?xml-stylesheet href="chrome://activities/skin/share.css" type="text/css"?>
+
+<overlay id="overlay"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  
+  <script type="application/x-javascript;1.8">
+    let tmp = {};
+    Cu.import("resource://activities/lib/defaultServices.js", tmp);
+    Cu.import("resource://activities/lib/services.js", tmp);
+    let { registerDefaultServices, ServiceInvocationHandler } = tmp;
+    dump(ServiceInvocationHandler+"\n");
+    registerDefaultServices();
+    var serviceInvocationHandler = new ServiceInvocationHandler(window);
+    
+    function toggleSharePanel() {
+      // we want to call startactivity
+      serviceInvocationHandler.invoke({
+        action: "share",
+        type: "share",
+        data: {
+          data: gBrowser.currentURI.spec,
+          title: gBrowser.currentTitle,
+          contentType:"url"
+          }
+      });
+    }
+  </script>
+
+  <commandset id="mainCommandSet">
+    <command id="cmd_toggleSharePanel" oncommand="toggleSharePanel(event);"/>
+  </commandset>
+  
+  <keyset id="mainKeyset">
+    <key id="key_share" keycode="VK_F1" command="cmd_toggleSharePanel"/>
+  </keyset>
+  
+  <menupopup id="contentAreaContextMenu">
+    <menuitem id="context-share"
+              insertafter="context-sendpage"
+              label="&sharePageCmd.label;"
+              command="cmd_toggleSharePanel"/>
+    <menuseparator id="context-share-separator"/>
+    <menuitem id="context-selected-share"
+              insertafter="context-sep-selectall"
+              label="&sharePageCmd.label;"
+              command="cmd_toggleSharePanel"/>
+    <menuseparator id="context-selected-share-separator"
+              hidden="true"/>
+  </menupopup>
+  
+  <menu id="file-menu">
+    <menupopup id="menu_FilePopup">
+      <menuitem id="menu_share"
+                insertafter="menu_sendLink"
+                label="&sharePageCmd.label;"
+                accesskey="&sharePageCmd.accesskey;"
+                command="cmd_toggleSharePanel"/>
+    </menupopup>
+  </menu>
+  
+  <vbox id="appmenuPrimaryPane">
+    <menuitem id="appmenu_sharePage"
+              insertafter="appmenu_sendLink"
+              label="&sharePageCmd.label;"
+              command="cmd_toggleSharePanel"/>
+  </vbox>
+  
+  <hbox id="urlbar-icons">
+    <image id="share-activity-button"
+           tooltiptext="&sharePageCmd.tooltip;"
+           class="urlbar-icon"
+           onclick="toggleSharePanel(event);"/>
+  </hbox>
+
+</overlay>

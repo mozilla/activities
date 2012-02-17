@@ -1,0 +1,13 @@
+content   activities                 content/
+skin      activities classic/1.0     skin/gnomestripe/ os=Linux
+skin      activities classic/1.0     skin/winstripe/   os=WINNT
+skin      activities classic/1.0     skin/pinstripe/   os=Darwin
+locale    activities en-US           locale/en-US/
+
+overlay	chrome://browser/content/browser.xul   chrome://activities/content/overlay.xul
+resource activities ./
+
+component {9175e12d-2377-5649-815b-2f49983d0ff3} components/api.js
+contract @mozilla.org/activities;1 {9175e12d-2377-5649-815b-2f49983d0ff3}
+category JavaScript-navigator-property mozActivities  @mozilla.org/activities;1
+

@@ -1,0 +1,72 @@
+/* Style the scrollbox for vertical arrangements. */
+.activities-panel .panel-inner-arrowcontent, .activities-panel .panel-arrowcontent
+{
+  padding: 0;
+}
+
+.activities-panel > hbox {
+  padding: 1px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.activities-tabs {
+  margin: 0;
+  padding: 10px 3px;
+  /*background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #515151), color-stop(100%, #2b2b2b));*/
+  /*background: -moz-linear-gradient(center top , #515151 0%, #2b2b2b 100%);*/
+  border-right: 0;
+}
+
+.activities-tabs .tabbrowser-arrowscrollbox > scrollbox {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.activities-tabs .tabs-newtab-button {
+  display: none
+}
+
+.activities-tabs .tabbrowser-tab {
+  height: 26px;
+  max-height: 26px;
+  min-height: 26px;
+  padding: 2px;
+  background: transparent;
+}
+
+.activities-tabs .tabbrowser-tab[selected="true"] {
+  background: transparent;
+  background-color: transparent;
+}
+
+.activities-tabs .tabbrowser-tab[selected="true"] > .tab-stack {
+  box-shadow: 0 0 1px -moz-mac-focusring inset, 0 0 4px 1px -moz-mac-focusring, 0 0 1.5px 1px -moz-mac-focusring;
+}
+
+/* trying to override some of this xul is fruitless */
+.activities-tabs .tabbrowser-tab .tab-background-start,
+.activities-tabs .tabbrowser-tab .tab-background-middle,
+.activities-tabs .tabbrowser-tab .tab-background-end,
+.activities-tabs .tabbrowser-tab .tab-background-start[pinned][titlechanged],
+.activities-tabs .tabbrowser-tab .tab-background-middle[pinned][titlechanged],
+.activities-tabs .tabbrowser-tab .tab-background-end[pinned][titlechanged],
+.activities-tabs .tabbrowser-tab .tab-background-start[pinned][titlechanged]:not([selected="true"]),
+.activities-tabs .tabbrowser-tab .tab-background-middle[pinned][titlechanged]:not([selected="true"]),
+.activities-tabs .tabbrowser-tab .tab-background-end[pinned][titlechanged]:not([selected="true"]),
+.activities-tabs .tabbrowser-tab[selected="true"] .tab-background-start,
+.activities-tabs .tabbrowser-tab[selected="true"] .tab-background-middle,
+.activities-tabs .tabbrowser-tab[selected="true"] .tab-background-end,
+.activities-tabs .tabbrowser-tab[selected="true"] .tab-background-start:-moz-window-inactive,
+.activities-tabs .tabbrowser-tab[selected="true"] .tab-background-middle:-moz-window-inactive,
+.activities-tabs .tabbrowser-tab[selected="true"] .tab-background-end:-moz-window-inactive {
+    background-color: transparent;
+}
+
+.activities-tabs .tabbrowser-tab .tab-label {
+  display: none;
+}
+
+.activities-tabbrowser {
+  margin: 5px 5px 5px 0;
+}
