@@ -11,25 +11,30 @@
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   
   <script type="application/x-javascript;1.8">
-    let tmp = {};
-    Cu.import("resource://activities/lib/defaultServices.js", tmp);
-    Cu.import("resource://activities/lib/services.js", tmp);
-    let { registerDefaultServices, ServiceInvocationHandler } = tmp;
-    registerDefaultServices();
-    var serviceInvocationHandler = new ServiceInvocationHandler(window);
-    
-    function toggleSharePanel() {
-      // we want to call startactivity
-      serviceInvocationHandler.invoke({
-        action: "share",
-        type: "share",
-        data: {
-          data: gBrowser.currentURI.spec,
-          title: gBrowser.currentTitle,
-          contentType:"url"
-          }
-      });
+  <![CDATA[
+    {
+      let tmp = {};
+      Cu.import("resource://activities/lib/defaultServices.js", tmp);
+      Cu.import("resource://activities/lib/services.js", tmp);
+      let { registerDefaultWebActivities, ServiceInvocationHandler } = tmp;
+
+      registerDefaultWebActivities();
+
+      window.serviceInvocationHandler = new ServiceInvocationHandler(window);
+      window.toggleSharePanel = function toggleSharePanel() {
+        // we want to call startactivity
+        serviceInvocationHandler.invoke({
+          action: "share",
+          type: "share",
+          data: {
+            data: gBrowser.currentURI.spec,
+            title: gBrowser.currentTitle,
+            contentType:"url"
+            }
+        });
+      }
     }
+  ]]>
   </script>
 
   <commandset id="mainCommandSet">

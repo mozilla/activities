@@ -9,19 +9,20 @@
 <h1>Tester Service Provider</h1>
 <script>
 window.addEventListener("message", function(event) {
-  console.log("test.html got message");
-  console.log(JSON.stringify(event.data) + " from "+(event.source?event.source.location:"addon"));
+  dump("test.html got message\n");
+  dump(JSON.stringify(event.data) + " from "+(event.source?event.source.location:"addon")+"\n");
+  document.getElementById('output').value = JSON.stringify(event.data) + " from "+(event.source?event.source.location:"addon")+"\n";
 }, false);
 window.addEventListener("load", function() {
-  console.log("try to send message from test.html");
+  dump("try to send message from test.html\n");
   try {
     window.postMessage(JSON.stringify({test:"tester.html"}), "*");
   } catch(e) {
-    console.log(e);
+    dump(e+"\n");
   }
 }, true);
     
 </script>
-
+<textarea id="output"></textarea>
 </body>
 </html>

@@ -6,7 +6,6 @@ function NavigatorAPI() {};
 NavigatorAPI.prototype = {
   QueryInterface: XPCOMUtils.generateQI([Ci.mozIDOMActivities, Ci.nsIDOMGlobalPropertyInitializer]),
   init: function API_init(aWindow) {
-    //console.log("API object init for "+aWindow.location);
     let chromeObject = this._getObject(aWindow);
   
     // We need to return an actual content object here, instead of a wrapped
@@ -19,7 +18,6 @@ NavigatorAPI.prototype = {
     let properties = {};
     
     for (var fn in chromeObject.__exposedProps__) {
-      //console.log("adding property "+fn);
       properties[fn] = genPropDesc(fn);
     }
   
