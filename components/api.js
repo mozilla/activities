@@ -1,9 +1,5 @@
 const {classes: Cc, interfaces: Ci, utils: Cu, resources: Cr, manager: Cm} = Components;
-var tmp = {};
-Cu.import("resource://gre/modules/Services.jsm", tmp);
-Cu.import("resource://gre/modules/XPCOMUtils.jsm", tmp);
-var { XPCOMUtils,
-      Services } = tmp;
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
 //----- navigator.mozActivities api implementation
 function NavigatorAPI() {};
@@ -41,11 +37,15 @@ MozActivitiesAPI.prototype = {
   __proto__: NavigatorAPI.prototype,
   classID: MozActivitiesAPIClassID,
   _getObject: function(aWindow) {
+    var xulWindow = aWindow.QueryInterface(Ci.nsIInterfaceRequestor)
+                   .getInterface(Ci.nsIWebNavigation)
+                   .QueryInterface(Ci.nsIDocShellTreeItem)
+                   .rootTreeItem
+                   .QueryInterface(Ci.nsIInterfaceRequestor)
+                   .getInterface(Ci.nsIDOMWindow); 
     return {
       startActivity: function(activity, successCB, errorCB) {
-        let wm = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator);
-        let recentWindow = wm.getMostRecentWindow("navigator:browser");
-        recentWindow.serviceInvocationHandler.invoke(activity, successCB, errorCB);
+        xulWindow.serviceInvocationHandler.invoke(activity, successCB, errorCB);
       },
       __exposedProps__: {
         startActivity: "r"
