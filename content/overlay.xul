@@ -14,8 +14,8 @@
   <![CDATA[
     {
       let tmp = {};
-      Cu.import("resource://activities/lib/defaultServices.js", tmp);
-      Cu.import("resource://activities/lib/services.js", tmp);
+      Cu.import("resource://activities/modules/defaultServices.js", tmp);
+      Cu.import("resource://activities/modules/services.js", tmp);
       let { registerDefaultWebActivities, ServiceInvocationHandler } = tmp;
 
       registerDefaultWebActivities();

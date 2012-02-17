@@ -97,7 +97,7 @@ var builtin = [
 function registerDefaultWebActivities() {
   // load this late to avoid cyclic loading
   let tmp = {};
-  Cu.import("resource://activities/lib/services.js", tmp);
+  Cu.import("resource://activities/modules/services.js", tmp);
   let {activityRegistry} = tmp;
   builtin.forEach(function(activity) {
     activityRegistry.registerActivityHandler(activity.action, activity.url, activity);
