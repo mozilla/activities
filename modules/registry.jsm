@@ -79,7 +79,7 @@ var activityRegistry = {
    * @param  string aURL              url of handler implementation
    * @param  jsval  aManifest         jsobject of the json manifest 
    */
-  registerActivityHandler: function(aActivityName, aURL, aManifest) {
+  registerActivityHandler: function activityRegistry_registerActivityHandler(aActivityName, aURL, aManifest) {
     this.unregisterActivityHandler(aActivityName, aURL);
     if (!this._activitiesList[aActivityName]) this._activitiesList[aActivityName] = {};
     
@@ -112,7 +112,7 @@ var activityRegistry = {
    * @param  string aActivityName     URI or name of activity
    * @param  string aURL              url of handler implementation
    */
-  unregisterActivityHandler: function(aActivityName, aURL) {
+  unregisterActivityHandler: function activityRegistry_unregisterActivityHandler(aActivityName, aURL) {
     let activities = this._activitiesList[aActivityName];
     if (!activities)
       return;
@@ -136,7 +136,7 @@ var activityRegistry = {
    * @param  function aCallback       error callback
    * @result array of jsobj           list of manifests for this activity
    */
-  getActivityHandlers: function(aActivityName, aCallback) {
+  getActivityHandlers: function activityRegistry_getActivityHandlers(aActivityName, aCallback) {
     let activities = [];
     if (this._activitiesList[aActivityName]) {
       for (var origin in this._activitiesList[aActivityName]) {
@@ -152,8 +152,7 @@ var activityRegistry = {
       //  activities = activities.concat(serviceList);
       //  cb(activities);
       //});
-    } catch (e) {
-    }
+    } catch (e) { }
     aCallback(activities);
   },
 
@@ -166,7 +165,7 @@ var activityRegistry = {
    * @param string  aActivityName    URI or name of activity
    * @param jsclass aClass           implementation of MediatorPanel
    */
-  registerMediatorClass: function(aActivityName, aClass) {
+  registerMediatorClass: function activityRegistry_registerMediatorClass(aActivityName, aClass) {
     if (this._mediatorClasses[aActivityName]) {
       throw new Exception("Mediator already registered for "+aActivityName);
     }
@@ -178,7 +177,7 @@ var activityRegistry = {
    *
    * reset our mediators if an app is installed or uninstalled
    */
-  observe: function(aSubject, aTopic, aData) {
+  observe: function activityRegistry_observe(aSubject, aTopic, aData) {
     let panels = this.window.document.getElementsByClassName('activities-panel');
     if (aTopic === "activity-handler-registered" ||
         aTopic === "activity-handler-unregistered") {
@@ -186,10 +185,9 @@ var activityRegistry = {
         if (panel.mediator.methodName == aData)
           panel.mediator.reconfigure();
       }
-    } else
-    if (aTopic === "openwebapp-installed" ||
-        aTopic === "openwebapp-uninstalled")
-    {
+    }
+    else if (aTopic === "openwebapp-installed" ||
+             aTopic === "openwebapp-uninstalled") {
       // XXX TODO look at the change in the app and only reconfigure the related
       // mediators.
       for each (let panel in panels) {
@@ -210,7 +208,7 @@ var activityRegistry = {
    * @param  function error callback
    * @return MediatorPanel instance
    */
-  get: function(aActivity, aSuccessCallback, aErrorCallback) {
+  get: function activityRegistry_get(aActivity, aSuccessCallback, aErrorCallback) {
     let panels = this.window.document.getElementsByClassName('activities-panel');
     for each (let panel in panels) {
       if (aActivity.action == panel.mediator.methodName) {
@@ -235,7 +233,7 @@ var activityRegistry = {
    * @param  function success callback
    * @param  function error callback
    */
-  invoke: function(aActivity, aSuccessCallback, aErrorCallback) {
+  invoke: function activityRegistry_invoke(aActivity, aSuccessCallback, aErrorCallback) {
     try {
       // Do we already have a panel for this service for this content window?
       this.get(aActivity, aSuccessCallback, aErrorCallback).show();
