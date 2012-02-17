@@ -5,11 +5,10 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm", tmp);
 var { XPCOMUtils,
       Services } = tmp;
 
-
 //----- navigator.mozActivities api implementation
 function NavigatorAPI() {};
 NavigatorAPI.prototype = {
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIDOMGlobalPropertyInitializer]),
+  QueryInterface: XPCOMUtils.generateQI([Ci.mozIDOMActivities, Ci.nsIDOMGlobalPropertyInitializer]),
   init: function API_init(aWindow) {
     //console.log("API object init for "+aWindow.location);
     let chromeObject = this._getObject(aWindow);
@@ -35,7 +34,7 @@ NavigatorAPI.prototype = {
   }
 };
 
-MozActivitiesAPIContract = "@mozilla.org/activites;1";
+MozActivitiesAPIContract = "@mozilla.org/activities;1";
 MozActivitiesAPIClassID = Components.ID("{9175e12d-2377-5649-815b-2f49983d0ff3}");
 function MozActivitiesAPI() {}
 MozActivitiesAPI.prototype = {
@@ -56,6 +55,4 @@ MozActivitiesAPI.prototype = {
 }
 
 var components = [MozActivitiesAPI];
-function NSGetModule(compMgr, fileSpec) {  
-   return XPCOMUtils.generateModule(components);  
-}
+var NSGetFactory = XPCOMUtils.generateNSGetFactory(components);

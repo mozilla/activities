@@ -11,3 +11,4 @@ component {9175e12d-2377-5649-815b-2f49983d0ff3} components/api.js
 contract @mozilla.org/activities;1 {9175e12d-2377-5649-815b-2f49983d0ff3}
 category JavaScript-navigator-property mozActivities  @mozilla.org/activities;1
 
+interfaces components/mozIDOMActivities.xpt
