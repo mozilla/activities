@@ -8,21 +8,32 @@
 <body>
 <h1>Tester Service Provider</h1>
 <script>
+var currentActivity;
+
 window.addEventListener("message", function(event) {
-  dump("test.html got message\n");
-  dump(JSON.stringify(event.data) + " from "+(event.source?event.source.location:"addon")+"\n");
-  document.getElementById('output').value = JSON.stringify(event.data) + " from "+(event.source?event.source.location:"addon")+"\n";
-}, false);
-window.addEventListener("load", function() {
-  dump("try to send message from test.html\n");
-  try {
-    window.postMessage(JSON.stringify({test:"tester.html"}), "*");
-  } catch(e) {
-    dump(e+"\n");
+  if (!event.source) {
+    // when xul sends the event, source is null
+    var msg = JSON.parse(event.data);
+    if (msg.topic == 'activity') {
+        currentActivity = msg.activity;
+        document.getElementById('output').value = event.data;
+    }
   }
-}, true);
-    
+}, false);
+
+function sendResult(data) {
+    data.action = currentActivity.action;
+    data.data = currentActivity.data;
+    var response = JSON.stringify({
+      topic: "activity",
+      data: data
+    });
+    window.postMessage(response, "*");
+}
 </script>
 <textarea id="output"></textarea>
+<button style="font-size:18px" onclick="sendResult({success:'Your share was great!'})">Respond with Success</button>
+<button style="font-size:18px" onclick="sendResult({error:'bummer'})">Respond with Error</button>
+
 </body>
 </html>

@@ -15,7 +15,7 @@ function doit(args) {
   navigator.mozActivities.startActivity(
     {
       action: "share",
-      type: "share",
+      type: "text/uri",
       data: {
         data: "http://somesite.com/",
         title: "A test share page",
@@ -34,9 +34,7 @@ function doit(args) {
 
 function showResult(msg)
 {
-  $("#output").hide().text(msg).fadeIn();
-}
-function init() {
+  document.getElementById("output").value = JSON.stringify(msg);
 }
 
 </script>
@@ -55,7 +53,7 @@ function init() {
 }
 </style>
 </head>
-<body onload="init()">
+<body>
 <div style="width:660px;margin:auto;padding-top:16px">
 
 <h2>startActivity demonstration</h2>
@@ -80,11 +78,8 @@ API (depending on whether we've implemented that yet).
         title="some random site"
         contenttype="url">Share with HTML</button>
 
-<div id="output"></div>
+<textarea id="output"></textarea>
 </div>
 </div>
-<script>
-$("#output").hide()
-</script>
 </body>
 </html>

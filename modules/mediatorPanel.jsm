@@ -125,10 +125,30 @@ MediatorPanel.prototype = {
     }
     document.defaultView.addEventListener('load', function(e) {
       document.defaultView.removeEventListener('load', arguments.callee, false);
-      document.defaultView.addEventListener("message", function(event) {
-          console.log("listener received "+event.data + " from "+ event.origin);
-      }.bind(this), true);
+      document.defaultView.addEventListener("message", this.onMessage.bind(this), true);
     }.bind(this), true);
+  },
+  
+  onMessage: function(event) {
+    //console.log("listener received "+event.data + " from "+ event.origin);
+    // get the tab for the document on the event
+    let msg = JSON.parse(event.data);
+    if (msg.topic != 'activity' || !msg.data)
+      return;
+    // XXX find the tab for the activity, this is currently assuming the panel
+    // is still visible so we're getting a postmessage back for the currentTab,
+    // but there is potential that the user has switched tabs in the meantime,
+    // or that a bad actor is haunting us.
+    try {
+      if (msg.data.success) {
+        this.onActivitySuccess(msg);
+      }
+      else {
+        this.data.onActivityFailure(msg);
+      }
+    } catch(e) {
+      console.log(e);
+    }
   },
 
   /**
@@ -294,6 +314,7 @@ MediatorPanel.prototype = {
       this.tabData.activity.data = this.updateargs(this.tabData.activity.data);
       this.invalidated = false;
     }
+    this.hideErrorNotification();
     this.panel.openPopup(this.anchor, "bottomcenter topleft");
   },
 
@@ -310,6 +331,7 @@ MediatorPanel.prototype = {
     // Check that we aren't already displaying our notification
     if (!notification) {
       let message;
+      // XXX need to strip message to text only
       if (data && data.message)
         message = data.message;
       else
