@@ -182,7 +182,7 @@ var activityRegistry = {
     if (aTopic === "activity-handler-registered" ||
         aTopic === "activity-handler-unregistered") {
       for each (let panel in panels) {
-        if (panel.mediator.methodName == aData)
+        if (panel.mediator.action == aData)
           panel.mediator.reconfigure();
       }
     }
@@ -191,7 +191,7 @@ var activityRegistry = {
       // XXX TODO look at the change in the app and only reconfigure the related
       // mediators.
       for each (let panel in panels) {
-        if (panel.mediator.methodName == aData)
+        if (panel.mediator.action == aData)
           panel.mediator.reconfigure();
       }
     }
@@ -211,7 +211,7 @@ var activityRegistry = {
   get: function activityRegistry_get(aActivity, aSuccessCallback, aErrorCallback) {
     let panels = this.window.document.getElementsByClassName('activities-panel');
     for each (let panel in panels) {
-      if (aActivity.action == panel.mediator.methodName) {
+      if (aActivity.action == panel.mediator.action) {
         panel.mediator.startActivity(aActivity, aSuccessCallback, aErrorCallback);
         return panel.mediator;
       }

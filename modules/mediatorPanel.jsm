@@ -62,7 +62,7 @@ let console = {
  * per mediator, created only when needed.
  */
 function MediatorPanel(activity) {
-  this.methodName = activity.action;
+  this.action = activity.action;
   this.defaultData = {
     activity: {
       action: activity.action,
@@ -70,14 +70,13 @@ function MediatorPanel(activity) {
       data: {}
     }
   };
-  this._panelId = btoa(this.methodName);
+  this._panelId = btoa(this.action);
 
   this.invalidated = true;
 
   // we use document-element-inserted here rather than
   // content-document-global-created so that other listeners using
-  // content-document-global-created will be called before us (e.g. injector.js
-  // needs to run first)
+  // content-document-global-created will be called before us.
   Services.obs.addObserver(this, 'document-element-inserted', false);
 
   this._createPopupPanel();
@@ -106,13 +105,13 @@ MediatorPanel.prototype = {
     let tab = this.window.gBrowser.selectedTab;
     if (!tab.activity)
       tab.activity = {};
-    tab.activity[this.methodName] = tabData;
+    tab.activity[this.action] = tabData;
     this.invalidated = true;
   },
   
   get tabData() {
     let tab = this.window.gBrowser.selectedTab;
-    return tab.activity? tab.activity[this.methodName] : this.defaultData;
+    return tab.activity? tab.activity[this.action] : this.defaultData;
   },
 
   observe: function(document, aTopic, aData) {
@@ -136,7 +135,7 @@ MediatorPanel.prototype = {
    * what the panel gets attached to
    * */
   get anchor() {
-    return this.window.document.getElementById(this.methodName+'-activity-button') ||
+    return this.window.document.getElementById(this.action+'-activity-button') ||
            this.window.document.getElementById('identity-box');
   },
 
@@ -266,7 +265,7 @@ MediatorPanel.prototype = {
     let tmp = {};
     Cu.import("resource://activities/modules/registry.jsm", tmp);
     let {activityRegistry} = tmp;
-    activityRegistry.getActivityHandlers(this.methodName, function(serviceList) {
+    activityRegistry.getActivityHandlers(this.action, function(serviceList) {
       // present an ordered selection based on frecency
       serviceList.sort(function(a,b) a.frecency-b.frecency).reverse();
       let empty = tb.selectedTab;
