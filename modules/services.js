@@ -191,12 +191,12 @@ MediatorPanel.prototype = {
     } else {
       try {
         var win = tb.contentWindow;
-        console.log("postMessage to "+win.location.protocol + "//" + win.location.host);
+        //console.log("postMessage to "+win.location.protocol + "//" + win.location.host);
         let data = JSON.stringify({
           topic: "activity",
           activity: this.tabData.activity.data
         });
-        console.log("   data is "+data);
+        //console.log("   data is "+data);
         win.postMessage(data, win.location.protocol + "//" + win.location.host);
       } catch(e) {
         console.log("postMessage: "+e)
