@@ -295,7 +295,6 @@ MediatorPanel.prototype = {
       this.tabData.activity.data = this.updateargs(this.tabData.activity.data);
       this.invalidated = false;
     }
-    console.log("showing popup");
     this.panel.openPopup(this.anchor, "bottomcenter topleft");
   },
 
