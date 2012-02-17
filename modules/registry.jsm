@@ -42,7 +42,7 @@
 const {classes: Cc, interfaces: Ci, utils: Cu, resources: Cr} = Components;
 
 Cu.import("resource://gre/modules/Services.jsm");
-Cu.import("resource://activities/modules/defaultServices.js");
+Cu.import("resource://activities/modules/defaultServices.jsm");
 Cu.import("resource://activities/modules/mediatorPanel.jsm");
 
 const NS_XUL = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";

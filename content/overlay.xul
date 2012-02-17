@@ -14,7 +14,7 @@
   <![CDATA[
     {
       // code that needs to deal with individual browser.xul windows
-      Cu.import("resource://activities/modules/services.js", window);
+      Cu.import("resource://activities/modules/registry.jsm", window);
 
       window.toggleSharePanel = function toggleSharePanel() {
         // we want to call startactivity

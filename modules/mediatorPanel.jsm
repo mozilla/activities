@@ -264,7 +264,7 @@ MediatorPanel.prototype = {
     this.panel = window.document.getElementById('activities-panel-'+this._panelId);
     let tb = window.document.getElementById('activities-tabbrowser-'+this._panelId);
     let tmp = {};
-    Cu.import("resource://activities/modules/services.js", tmp);
+    Cu.import("resource://activities/modules/registry.jsm", tmp);
     let {activityRegistry} = tmp;
     activityRegistry.getActivityHandlers(this.methodName, function(serviceList) {
       // present an ordered selection based on frecency
