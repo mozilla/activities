@@ -13,17 +13,12 @@
   <script type="application/x-javascript;1.8">
   <![CDATA[
     {
-      let tmp = {};
-      Cu.import("resource://activities/modules/defaultServices.js", tmp);
-      Cu.import("resource://activities/modules/services.js", tmp);
-      let { registerDefaultWebActivities, ServiceInvocationHandler } = tmp;
+      // code that needs to deal with individual browser.xul windows
+      Cu.import("resource://activities/modules/services.js", window);
 
-      registerDefaultWebActivities();
-
-      window.serviceInvocationHandler = new ServiceInvocationHandler(window);
       window.toggleSharePanel = function toggleSharePanel() {
         // we want to call startactivity
-        serviceInvocationHandler.invoke({
+        activityRegistry.invoke({
           action: "share",
           type: "share",
           data: {
@@ -33,6 +28,14 @@
             }
         });
       }
+
+      // panels are not closing on TabOpen
+      gBrowser.tabContainer.addEventListener("TabOpen", function(e) {
+        var panels = win.document.getElementsByClassName('activities-panel');
+        for each (let panel in panels) {
+          if (panel.state == "open") panel.hidePopup();
+        }
+      });
     }
   ]]>
   </script>

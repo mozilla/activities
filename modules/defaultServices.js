@@ -2,7 +2,7 @@ const {classes: Cc, interfaces: Ci, utils: Cu, resources: Cr} = Components;
 
 Cu.import("resource://gre/modules/PlacesUtils.jsm");
 
-const EXPORTED_SYMBOLS = ["hasLogin", "registerDefaultWebActivities", "frecencyForUrl"];
+const EXPORTED_SYMBOLS = ["hasLogin", "builtinActivities", "frecencyForUrl"];
 
 function hasLogin(hostname) {
   try {
@@ -38,19 +38,11 @@ function frecencyForUrl(host)
   return frecency;
 }
 
-function shouldRegister(host) {
-  
-}
-
-function shouldAskRegister(host) {
-  
-}
-
 
 // this is an ordered list, "least popular" to "most popular" which will
 // be maintained in the case the user does not have any logins or frecency.
 // the mediator will enable via login and frecency, and sort by frecency.
-var builtin = [
+var builtinActivities = [
   {
     login: "https://www.yammer.com",
     action: "share",
@@ -93,14 +85,3 @@ var builtin = [
     url: "resource://activities/test/tester.html"
   }
 ];
-
-function registerDefaultWebActivities() {
-  // load this late to avoid cyclic loading
-  let tmp = {};
-  Cu.import("resource://activities/modules/services.js", tmp);
-  let {activityRegistry} = tmp;
-  builtin.forEach(function(activity) {
-    activityRegistry.registerActivityHandler(activity.action, activity.url, activity);
-  });
-}
-
