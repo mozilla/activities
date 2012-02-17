@@ -70,50 +70,77 @@ var activityRegistry = {
     return wm.getMostRecentWindow("navigator:browser");
   },
 
-  registerActivityHandler: function(activity, uri, data) {
-    this.unregisterActivityHandler(activity, uri);
-    if (!this._activitiesList[activity]) this._activitiesList[activity] = {};
+  /**
+   * registerActivityHandler
+   *
+   * register the manifest for an activity service provider.
+   *
+   * @param  string aActivityName     URI or name of activity
+   * @param  string aURL              url of handler implementation
+   * @param  jsval  aManifest         jsobject of the json manifest 
+   */
+  registerActivityHandler: function(aActivityName, aURL, aManifest) {
+    this.unregisterActivityHandler(aActivityName, aURL);
+    if (!this._activitiesList[aActivityName]) this._activitiesList[aActivityName] = {};
     
     // get the frecency for this service
-    let hosturl = Services.io.newURI(uri, null, null);
+    let hosturl = Services.io.newURI(aURL, null, null);
     let host = hosturl.host;
     let frecency = frecencyForUrl(host);
-    let loginHost = data.login || hosturl.scheme+"://"+hosturl.host;
+    let loginHost = aManifest.login || hosturl.scheme+"://"+hosturl.host;
     // for now, hard code at least a frecency of 50 for the service
     // to auto-enable
     let enabled = true;//hasLogin(loginHost) || frecency > 50;
     
     // store by origin.  our builtins get registered first, then we'll register
     // any installed activities, which can overwrite the builtins
-    this._activitiesList[activity][hosturl.host] = {
-      url: uri,
-      service: activity,
-      app: data,
+    this._activitiesList[aActivityName][hosturl.host] = {
+      url: aURL,
+      service: aActivityName,
+      app: aManifest,
       frecency: frecency,
       enabled: enabled
     };
-    Services.obs.notifyObservers(null, 'activity-handler-registered', activity);
+    Services.obs.notifyObservers(null, 'activity-handler-registered', aActivityName);
   },
 
-  unregisterActivityHandler: function(action, uri) {
-    let activities = this._activitiesList[action];
+  /**
+   * unregisterActivityHandler
+   *
+   * unregister an activity service provider
+   *
+   * @param  string aActivityName     URI or name of activity
+   * @param  string aURL              url of handler implementation
+   */
+  unregisterActivityHandler: function(aActivityName, aURL) {
+    let activities = this._activitiesList[aActivityName];
     if (!activities)
       return;
-    let origin = Services.io.newURI(uri, null, null).hostname;
+    let origin = Services.io.newURI(aURL, null, null).hostname;
     if (!origin)
       return;
-    let activity = this._activitiesList[action][origin];
+    let activity = this._activitiesList[aActivityName][origin];
     if (activity) {
-      delete this._activitiesList[action][origin];
-      Services.obs.notifyObservers(null, 'activity-handler-unregistered', activity);
+      delete this._activitiesList[aActivityName][origin];
+      Services.obs.notifyObservers(null, 'activity-handler-unregistered', aActivityName);
     }
   },
 
-  getActivityHandlers: function(activityName, cb) {
+  /**
+   * registerMediatorClass
+   *
+   * register a class to be used as the mediator in place of the default
+   * mediator class.
+   *
+   * @param  string aActivityName     URI or name of activity
+   * @param  function aCallback       error callback
+   * @result array of jsobj           list of manifests for this activity
+   */
+  getActivityHandlers: function(aActivityName, aCallback) {
     let activities = [];
-    if (this._activitiesList[activityName]) {
-      for (var origin in this._activitiesList[activityName]) {
-        activities.push(this._activitiesList[activityName][origin]);
+    if (this._activitiesList[aActivityName]) {
+      for (var origin in this._activitiesList[aActivityName]) {
+        activities.push(this._activitiesList[aActivityName][origin]);
       }
     }
     try {
@@ -127,7 +154,7 @@ var activityRegistry = {
       //});
     } catch (e) {
     }
-    cb(activities);
+    aCallback(activities);
   },
 
   /**
@@ -136,58 +163,66 @@ var activityRegistry = {
    * register a class to be used as the mediator in place of the default
    * mediator class.
    *
+   * @param string  aActivityName    URI or name of activity
+   * @param jsclass aClass           implementation of MediatorPanel
    */
-  registerMediatorClass: function(methodName, callback) {
-    if (this._mediatorClasses[methodName]) {
-      throw new Exception("Mediator already registered for "+methodName);
+  registerMediatorClass: function(aActivityName, aClass) {
+    if (this._mediatorClasses[aActivityName]) {
+      throw new Exception("Mediator already registered for "+aActivityName);
     }
-    this._mediatorClasses[methodName] = callback;
+    this._mediatorClasses[aActivityName] = aClass;
   },
 
   /**
-   * initApp
+   * observer
    *
    * reset our mediators if an app is installed or uninstalled
    */
-  observe: function(subject, topic, data) {
+  observe: function(aSubject, aTopic, aData) {
     let panels = this.window.document.getElementsByClassName('activities-panel');
-    if (topic === "activity-handler-registered" ||
-        topic === "activity-handler-unregistered") {
+    if (aTopic === "activity-handler-registered" ||
+        aTopic === "activity-handler-unregistered") {
       for each (let panel in panels) {
-        if (panel.mediator.methodName == data)
+        if (panel.mediator.methodName == aData)
           panel.mediator.reconfigure();
       }
     } else
-    if (topic === "openwebapp-installed" ||
-        topic === "openwebapp-uninstalled" ||
-        topic === "net:clear-active-logins")
+    if (aTopic === "openwebapp-installed" ||
+        aTopic === "openwebapp-uninstalled")
     {
       // XXX TODO look at the change in the app and only reconfigure the related
       // mediators.
       for each (let panel in panels) {
-        if (panel.mediator.methodName == data)
+        if (panel.mediator.methodName == aData)
           panel.mediator.reconfigure();
       }
     }
   },
 
-  get: function(activity, successCB, errorCB) {
+  /**
+   * get
+   *
+   * Return the mediator instance handling this activity, create one if one
+   * does not exist.
+   *
+   * @param  jsobject activity
+   * @param  function success callback
+   * @param  function error callback
+   * @return MediatorPanel instance
+   */
+  get: function(aActivity, aSuccessCallback, aErrorCallback) {
     let panels = this.window.document.getElementsByClassName('activities-panel');
     for each (let panel in panels) {
-      if (activity.action == panel.mediator.methodName) {
-        // We are going to replace the existing activity (if any) for the
-        // current tab with this new activity - but if there is some
-        // mediatorState for that tab we want to keep that.
-        activity.mediatorState = panel.mediator.tabData.activity.mediatorState;
-        panel.mediator.startActivity(activity, successCB, errorCB);
+      if (aActivity.action == panel.mediator.methodName) {
+        panel.mediator.startActivity(aActivity, aSuccessCallback, aErrorCallback);
         return panel.mediator;
       }
     }
     // if we didn't find it, create it
-    let klass = this._mediatorClasses[activity.action] ?
-                      this._mediatorClasses[activity.action] : MediatorPanel;
-    let mediator = new klass(activity);
-    mediator.startActivity(activity, successCB, errorCB);
+    let klass = this._mediatorClasses[aActivity.action] ?
+                      this._mediatorClasses[aActivity.action] : MediatorPanel;
+    let mediator = new klass(aActivity);
+    mediator.startActivity(aActivity, aSuccessCallback, aErrorCallback);
     return mediator;
   },
 
@@ -195,13 +230,15 @@ var activityRegistry = {
    * invoke
    *
    * show the panel for a mediator, creating one if necessary.
+   * 
+   * @param  jsobject aActivity
+   * @param  function success callback
+   * @param  function error callback
    */
-  invoke: function(activity, successCB, errorCB) {
+  invoke: function(aActivity, aSuccessCallback, aErrorCallback) {
     try {
       // Do we already have a panel for this service for this content window?
-      let mediator = this.get(activity, successCB, errorCB);
-      mediator.hideErrorNotification();
-      mediator.show();
+      this.get(aActivity, aSuccessCallback, aErrorCallback).show();
     } catch (e) {
       console.log(e);
     }
@@ -213,7 +250,6 @@ Services.obs.addObserver(activityRegistry, "activity-handler-registered", false)
 Services.obs.addObserver(activityRegistry, "activity-handler-unregistered", false);
 Services.obs.addObserver(activityRegistry, "openwebapp-installed", false);
 Services.obs.addObserver(activityRegistry, "openwebapp-uninstalled", false);
-Services.obs.addObserver(activityRegistry, "net:clear-active-logins", false);
 
 function registerDefaultWebActivities() {
   builtinActivities.forEach(function(activity) {
