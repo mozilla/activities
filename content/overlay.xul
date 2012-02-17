@@ -31,7 +31,7 @@
 
       // panels are not closing on TabOpen
       gBrowser.tabContainer.addEventListener("TabOpen", function(e) {
-        var panels = win.document.getElementsByClassName('activities-panel');
+        var panels = document.getElementsByClassName('activities-panel');
         for each (let panel in panels) {
           if (panel.state == "open") panel.hidePopup();
         }
