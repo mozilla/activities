@@ -43,6 +43,8 @@ MozActivitiesAPI.prototype = {
                    .getInterface(Ci.nsIDOMWindow); 
     return {
       startActivity: function(activity, successCB, errorCB) {
+        // XXX TODO this should have the same protection as window.open, only
+        // allowed on a user initiated event.
         return xulWindow.activityRegistry.invoke(activity, successCB, errorCB);
       },
       __exposedProps__: {
