@@ -67,7 +67,7 @@ function MediatorPanel(activity) {
     activity: {
       action: activity.action,
       type: activity.type,
-      data: {}
+      data: ""
     }
   };
   this._panelId = btoa(this.action);
@@ -96,12 +96,12 @@ MediatorPanel.prototype = {
     return wm.getMostRecentWindow("navigator:browser");
   },
 
-  startActivity: function(activity, successCB, errorCB) {
+  startActivity: function(activity) {
     let tabData = {
       activity: activity,
-      successCB: successCB,
-      errorCB: errorCB
+      onmessage: activity.onmessage,
     }
+    delete activity['onmessage']; // we don't want this passed through
     let tab = this.window.gBrowser.selectedTab;
     if (!tab.activity)
       tab.activity = {};
@@ -144,7 +144,7 @@ MediatorPanel.prototype = {
         this.onActivitySuccess(msg);
       }
       else {
-        this.data.onActivityFailure(msg);
+        this.onActivityFailure(msg);
       }
     } catch(e) {
       console.log(e);
@@ -179,20 +179,20 @@ MediatorPanel.prototype = {
     // the mediator might have seen a failure but offered its own UI to
     // retry - so hide any old error notifications.
     this.hideErrorNotification();
-    if (this.tabData.successCB)
-      this.tabData.successCB(msg);
+    if (this.tabData.onmessage)
+      this.tabData.onmessage(msg);
   },
 
   onActivityFailure: function(errob) {
-    console.error("mediator reported invocation error:", errob.message)
+    console.log("mediator reported invocation error:", errob.message)
     this.showErrorNotification(errob);
   },
   
-  _processTemplate: function(tmpl, data) {
-    let url = tmpl;
-    for (var d in data) {
+  _processTemplate: function(tmpl, activity) {
+    let url = tmpl.replace("%{data}", activity.data);
+    for (var d in activity.extras) {
       let repl = "%{"+d+"}";
-      url = url.replace(repl, data[d]);
+      url = url.replace(repl, activity.extras[d]);
     }
     return url;
   },
@@ -205,7 +205,7 @@ MediatorPanel.prototype = {
       // our builtins are most likely urlTemplate based share pages, we'll keep
       // it simple and use those for now, with the "upgrade" path being a full
       // activities implementation.
-      let url = this._processTemplate(tab.service.app.urlTemplate, this.tabData.activity.data);
+      let url = this._processTemplate(tab.service.app.urlTemplate, this.tabData.activity);
       tb.contentWindow.location = url;
     } else {
       try {
@@ -213,7 +213,7 @@ MediatorPanel.prototype = {
         //console.log("postMessage to "+win.location.protocol + "//" + win.location.host);
         let data = JSON.stringify({
           topic: "activity",
-          activity: this.tabData.activity.data
+          activity: this.tabData.activity
         });
         //console.log("   data is "+data);
         win.postMessage(data, win.location.protocol + "//" + win.location.host);
@@ -311,7 +311,7 @@ MediatorPanel.prototype = {
    */
   show: function() {
     if (this.invalidated) {
-      this.tabData.activity.data = this.updateargs(this.tabData.activity.data);
+      this.tabData.activity = this.updateargs(this.tabData.activity);
       this.invalidated = false;
     }
     this.hideErrorNotification();

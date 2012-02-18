@@ -204,24 +204,19 @@ var activityRegistry = {
    * does not exist.
    *
    * @param  jsobject activity
-   * @param  function success callback
-   * @param  function error callback
    * @return MediatorPanel instance
    */
-  get: function activityRegistry_get(aActivity, aSuccessCallback, aErrorCallback) {
+  get: function activityRegistry_get(aActivity) {
     let panels = this.window.document.getElementsByClassName('activities-panel');
     for each (let panel in panels) {
       if (aActivity.action == panel.mediator.action) {
-        panel.mediator.startActivity(aActivity, aSuccessCallback, aErrorCallback);
         return panel.mediator;
       }
     }
     // if we didn't find it, create it
     let klass = this._mediatorClasses[aActivity.action] ?
                       this._mediatorClasses[aActivity.action] : MediatorPanel;
-    let mediator = new klass(aActivity);
-    mediator.startActivity(aActivity, aSuccessCallback, aErrorCallback);
-    return mediator;
+    return new klass(aActivity);
   },
 
   /**
@@ -230,15 +225,15 @@ var activityRegistry = {
    * show the panel for a mediator, creating one if necessary.
    * 
    * @param  jsobject aActivity
-   * @param  function success callback
-   * @param  function error callback
    */
-  invoke: function activityRegistry_invoke(aActivity, aSuccessCallback, aErrorCallback) {
+  invoke: function activityRegistry_invoke(aActivity) {
     try {
       // Do we already have a panel for this service for this content window?
-      this.get(aActivity, aSuccessCallback, aErrorCallback).show();
+      let mediator = this.get(aActivity);
+      mediator.startActivity(aActivity);
+      mediator.show();
     } catch (e) {
-      console.log(e);
+      console.log("invoke: "+e);
     }
   }
 };

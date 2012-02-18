@@ -2,8 +2,12 @@
 <head>
 <title>startActivity demonstration</title>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
-<script>
+<script type="text/javascript">
 
+function showResult(msg)
+{
+  document.getElementById("output").value = JSON.stringify(msg);
+}
 
 function doit(args) {
   if (!navigator.mozActivities || !navigator.mozActivities.startActivity)
@@ -12,29 +16,20 @@ function doit(args) {
     return;
   }
 
-  navigator.mozActivities.startActivity(
-    {
-      action: "share",
-      type: "text/uri",
-      data: {
-        data: "http://somesite.com/",
-        title: "A test share page",
-        description: "Demonstration page for testing purposes",
-        contentType:"url"
-        }
+  var activity = {
+    action: "share",
+    type: "text/uri",
+    data: "http://somesite.com/",
+    extras: {
+      title: "A test share page",
+      description: "Demonstration page for testing purposes",
     },
-  
-  function(result) {
-    showResult(result);
-  }, 
-  function() {
-    showResult("Sorry, not able to invoke the service.");
-  });
-}
+    onmessage: function(msg) {
+      showResult(msg);
+    }
+  };
 
-function showResult(msg)
-{
-  document.getElementById("output").value = JSON.stringify(msg);
+  navigator.mozActivities.startActivity(activity);
 }
 
 </script>

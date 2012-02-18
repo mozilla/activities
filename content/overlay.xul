@@ -20,12 +20,11 @@
         // we want to call startactivity
         activityRegistry.invoke({
           action: "share",
-          type: "share",
-          data: {
-            data: gBrowser.currentURI.spec,
-            title: gBrowser.currentTitle,
-            contentType:"url"
-            }
+          type: "text/uri",
+          data: gBrowser.currentURI.spec,
+          extras: {
+            title: gBrowser.contentDocument.title,
+          }
         });
       }
 
