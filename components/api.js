@@ -43,7 +43,7 @@ MozActivitiesAPI.prototype = {
                    .getInterface(Ci.nsIDOMWindow); 
     return {
       startActivity: function(activity, successCB, errorCB) {
-        xulWindow.activityRegistry.invoke(activity, successCB, errorCB);
+        return xulWindow.activityRegistry.invoke(activity, successCB, errorCB);
       },
       __exposedProps__: {
         startActivity: "r"

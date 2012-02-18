@@ -48,7 +48,7 @@ interface mozIDOMActivitiesCallback: nsISupports {
 
 [scriptable, uuid(92fdb751-1fbc-2b48-a4da-4f2f8621b324)]
 interface mozIDOMActivities: nsISupports {
-    void startActivity(in jsval aActivity,
+    jsval startActivity(in jsval aActivity,
                        [optional] in mozIDOMActivitiesCallback success,
                        [optional] in mozIDOMActivitiesCallback error);
 };

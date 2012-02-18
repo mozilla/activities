@@ -230,11 +230,13 @@ var activityRegistry = {
     try {
       // Do we already have a panel for this service for this content window?
       let mediator = this.get(aActivity);
-      mediator.startActivity(aActivity);
+      let port = mediator.startActivity(aActivity);
       mediator.show();
+      return port;
     } catch (e) {
       console.log("invoke: "+e);
     }
+    return null;
   }
 };
 

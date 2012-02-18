@@ -55,6 +55,15 @@ let console = {
   }
 }
 
+function MessagePort() {}
+MessagePort.prototype = {
+  postMessage: function(data) {
+    if (this.onmessage) {
+      this.onmessage(data);
+    }
+  }
+}
+
 /**
  * MediatorPanel
  *
@@ -99,14 +108,14 @@ MediatorPanel.prototype = {
   startActivity: function(activity) {
     let tabData = {
       activity: activity,
-      onmessage: activity.onmessage,
+      port: new MessagePort(),
     }
-    delete activity['onmessage']; // we don't want this passed through
     let tab = this.window.gBrowser.selectedTab;
     if (!tab.activity)
       tab.activity = {};
     tab.activity[this.action] = tabData;
     this.invalidated = true;
+    return tabData.port;
   },
   
   get tabData() {
@@ -146,6 +155,8 @@ MediatorPanel.prototype = {
       else {
         this.onActivityFailure(msg);
       }
+      // XXX if there are messages we want to intercept, do it here
+      this.tabData.port.postMessage(event.data);
     } catch(e) {
       console.log(e);
     }
@@ -179,12 +190,10 @@ MediatorPanel.prototype = {
     // the mediator might have seen a failure but offered its own UI to
     // retry - so hide any old error notifications.
     this.hideErrorNotification();
-    if (this.tabData.onmessage)
-      this.tabData.onmessage(msg);
   },
 
   onActivityFailure: function(errob) {
-    console.log("mediator reported invocation error:", errob.message)
+    this.panel.hidePopup();
     this.showErrorNotification(errob);
   },
   
