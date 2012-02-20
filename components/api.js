@@ -44,7 +44,9 @@ MozActivitiesAPI.prototype = {
     return {
       startActivity: function(activity, successCB, errorCB) {
         // XXX TODO this should have the same protection as window.open, only
-        // allowed on a user initiated event.
+        // allowed on a user initiated event.  It would be awesome if
+        // nsIScriptSecurityManager::subjectPrincipalIsSystem were scriptable,
+        // that should supply what we need.
         return xulWindow.activityRegistry.invoke(activity, successCB, errorCB);
       },
       __exposedProps__: {
