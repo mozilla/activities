@@ -40,8 +40,16 @@
  *
  */
 
+[scriptable, uuid(8163c04f-df3d-584e-ad23-561930e6fa23)]
+interface mozIDOMActivitiesCallback: nsISupports {
+    void handleEvent(in jsval data);
+};
+
+
 [scriptable, uuid(92fdb751-1fbc-2b48-a4da-4f2f8621b324)]
 interface mozIDOMActivities: nsISupports {
-    jsval startActivity(in jsval aActivity);
+    void startActivity(in jsval aActivity,
+                       [optional] in mozIDOMActivitiesCallback success,
+                       [optional] in mozIDOMActivitiesCallback error);
 };
 

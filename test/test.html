@@ -26,10 +26,13 @@ function doit(args) {
     }
   };
 
-  var port = navigator.mozActivities.startActivity(activity);
-  port.onmessage = function(msg) {
-    showResult(msg);
-  }
+  navigator.mozActivities.startActivity(activity,
+    function(result) {
+      showResult(JSON.stringify(result));
+    }, 
+    function(error) {
+      showResult(JSON.stringify(error));
+    });
 }
 
 </script>

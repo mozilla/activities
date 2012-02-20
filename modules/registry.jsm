@@ -225,18 +225,18 @@ var activityRegistry = {
    * show the panel for a mediator, creating one if necessary.
    * 
    * @param  jsobject aActivity
+   * @param  function success callback
+   * @param  function error callback
    */
-  invoke: function activityRegistry_invoke(aActivity) {
+  invoke: function activityRegistry_invoke(aActivity, aSuccessCallback, aErrorCallback) {
     try {
       // Do we already have a panel for this service for this content window?
       let mediator = this.get(aActivity);
-      let port = mediator.startActivity(aActivity);
+      mediator.startActivity(aActivity, aSuccessCallback, aErrorCallback);
       mediator.show();
-      return port;
     } catch (e) {
       console.log("invoke: "+e);
     }
-    return null;
   }
 };
 
