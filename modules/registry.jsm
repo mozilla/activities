@@ -56,6 +56,9 @@ let console = {
   }
 }
 
+// XXX TODO activityRegistry should become an XPCOM service, but am not sure
+// how I want to handle registerMediatorClass just yet.
+
 /**
  * activityRegistry is our internal js/xul window api for web activities.  It
  * holds a registry of installed activity handlers, their mediators, and
