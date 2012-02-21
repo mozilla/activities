@@ -14,10 +14,11 @@
   <![CDATA[
     {
       // code that needs to deal with individual browser.xul windows
-      Cu.import("resource://activities/modules/registry.jsm", window);
 
       window.toggleSharePanel = function toggleSharePanel() {
         // we want to call startactivity
+        let activityRegistry = Components.classes["@mozilla.org/activitiesRegistry;1"]
+                                .getService(Components.interfaces.mozIActivitiesRegistry);
         activityRegistry.invoke(window, {
           action: "share",
           type: "text/uri",

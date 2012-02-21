@@ -282,10 +282,9 @@ MediatorPanel.prototype = {
   _createPopupPanel: function(aWindow) {
     this._createPanelOverlay(aWindow);
     let tb = this.tabbrowser;
-    let tmp = {};
-    Cu.import("resource://activities/modules/registry.jsm", tmp);
-    let {activityRegistry} = tmp;
-    activityRegistry.getActivityHandlers(this.action, function(serviceList) {
+    let activityRegistry = Cc["@mozilla.org/activitiesRegistry;1"]
+                            .getService(Ci.mozIActivitiesRegistry);
+    function cb(serviceList) {
       // present an ordered selection based on frecency
       serviceList.sort(function(a,b) a.frecency-b.frecency).reverse();
       let empty = tb.selectedTab;
@@ -298,7 +297,8 @@ MediatorPanel.prototype = {
       //tb.pinTab(tb.addTab(require("self").data.url("preferences.html")));
       tb.selectTabAtIndex(0);
       tb.removeTab(empty);
-    }.bind(this));
+    }
+    activityRegistry.getActivityHandlers(this.action, cb);
     this.panel.addEventListener('popupshown', this.onPanelShown.bind(this));
     this.panel.addEventListener('popuphidden', this.onPanelHidden.bind(this));
     this.panel.addEventListener('TabSelect', this.onPanelShown.bind(this)); // use onPanelShown to resend activity

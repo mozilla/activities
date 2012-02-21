@@ -39,17 +39,36 @@
 /* Web Activities API
  *
  */
+interface nsIDOMWindow;
 
-[scriptable, uuid(8163c04f-df3d-584e-ad23-561930e6fa23)]
+[scriptable, function, uuid(8163c04f-df3d-584e-ad23-561930e6fa23)]
 interface mozIDOMActivitiesCallback: nsISupports {
-    void handleEvent(in jsval data);
+  void handleEvent(in jsval data);
 };
-
 
 [scriptable, uuid(92fdb751-1fbc-2b48-a4da-4f2f8621b324)]
 interface mozIDOMActivities: nsISupports {
-    void startActivity(in jsval aActivity,
-                       [optional] in mozIDOMActivitiesCallback success,
-                       [optional] in mozIDOMActivitiesCallback error);
+  void startActivity(in jsval aActivity,
+                     [optional] in mozIDOMActivitiesCallback success,
+                     [optional] in mozIDOMActivitiesCallback error);
 };
+
+[scriptable, function, uuid(e372c4d4-a4db-a04a-baa8-cd032613ee1c)]
+interface mozIActivitiesMediatorFactory : nsISupports {
+  void createInstance(in nsIDOMWindow aWindow, in jsval aActivity, [retval] out jsval aMeditorInstance);
+};
+
+[scriptable, uuid(92fdb751-1fbc-2b48-a4da-4f2f8621b324)]
+interface mozIActivitiesRegistry: nsISupports {
+  void registerActivityHandler(in DOMString aActivityName, in DOMString aURL, in jsval aManifest);
+  void unregisterActivityHandler(in DOMString aActivityName, in DOMString aURL);
+  void getActivityHandlers(in DOMString aActivityName,
+                           in mozIDOMActivitiesCallback aCallback);
+  void registerMediator(in DOMString aActivityName,
+                        in mozIActivitiesMediatorFactory aMediatorClass);
+  void invoke(in nsIDOMWindow aWindow, in jsval aActivity,
+              [optional] in mozIDOMActivitiesCallback success,
+              [optional] in mozIDOMActivitiesCallback error);
+};
+
 

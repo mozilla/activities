@@ -1,6 +1,5 @@
 const {classes: Cc, interfaces: Ci, utils: Cu, resources: Cr, manager: Cm} = Components;
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
-Cu.import("resource://activities/modules/registry.jsm");
 
 //----- navigator.mozActivities api implementation
 function NavigatorAPI() {};
@@ -29,12 +28,11 @@ NavigatorAPI.prototype = {
   }
 };
 
-MozActivitiesAPIContract = "@mozilla.org/activities;1";
-MozActivitiesAPIClassID = Components.ID("{9175e12d-2377-5649-815b-2f49983d0ff3}");
 function MozActivitiesAPI() {}
 MozActivitiesAPI.prototype = {
   __proto__: NavigatorAPI.prototype,
-  classID: MozActivitiesAPIClassID,
+  classID: Components.ID("{9175e12d-2377-5649-815b-2f49983d0ff3}"),
+  contractID: "@mozilla.org/activities;1",
   _getObject: function(aWindow) {
     var xulWindow = aWindow.QueryInterface(Ci.nsIInterfaceRequestor)
                    .getInterface(Ci.nsIWebNavigation)
@@ -48,6 +46,8 @@ MozActivitiesAPI.prototype = {
         // allowed on a user initiated event.  It would be awesome if
         // nsIScriptSecurityManager::subjectPrincipalIsSystem were scriptable,
         // that should supply what we need.
+        let activityRegistry = Cc["@mozilla.org/activitiesRegistry;1"]
+                                .getService(Ci.mozIActivitiesRegistry);
         return activityRegistry.invoke(xulWindow, activity, successCB, errorCB);
       },
       __exposedProps__: {

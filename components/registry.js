@@ -39,8 +39,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const {classes: Cc, interfaces: Ci, utils: Cu, resources: Cr} = Components;
+const {classes: Cc, interfaces: Ci, utils: Cu, resources: Cr, manager: Cm} = Components;
+dump("loading registry xpcom\n");
 
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://activities/modules/defaultServices.jsm");
 Cu.import("resource://activities/modules/mediatorPanel.jsm");
@@ -56,6 +58,7 @@ let console = {
   }
 }
 
+
 // XXX TODO activityRegistry should become an XPCOM service, but am not sure
 // how I want to handle registerMediatorClass just yet.
 
@@ -64,7 +67,36 @@ let console = {
  * holds a registry of installed activity handlers, their mediators, and
  * allows for invoking a mediator for an activity.
  */
-var activityRegistry = {
+function activityRegistry() {
+  // XXX proper init and shutdown needed
+  try {
+  Services.obs.addObserver(this, "activity-handler-registered", false);
+  Services.obs.addObserver(this, "activity-handler-unregistered", false);
+  Services.obs.addObserver(this, "openwebapp-installed", false);
+  Services.obs.addObserver(this, "openwebapp-uninstalled", false);
+  
+  builtinActivities.forEach(function(activity) {
+    this.registerActivityHandler(activity.action, activity.url, activity);
+  });
+  } catch(e) {
+    dump("activityRegistry init "+e+"\n"); 
+  }
+  dump("registry service started\n");
+}
+
+let activityRegistryClassID = Components.ID("{8d764216-d779-214f-8da0-80e211d759eb}");
+let activityRegistryCID = "@mozilla.org/activitiesRegistry;1";
+
+activityRegistry.prototype = {
+  classID: activityRegistryClassID,
+  contractID: activityRegistryCID,
+  classInfo: XPCOMUtils.generateCI({classID: activityRegistryClassID,
+                                    contractID: activityRegistryCID,
+                                    interfaces: [Ci.mozIActivitiesRegistry, Ci.nsIObserver],
+                                    flags: Ci.nsIClassInfo.SINGLETON,
+                                    classDescription: "Web Activities Registry"}),
+  QueryInterface: XPCOMUtils.generateQI([Ci.mozIActivitiesRegistry, Ci.nsIObserver]),
+
   _mediatorClasses: {}, // key is service name, value is a callable.
   _activitiesList: {},
 
@@ -242,17 +274,5 @@ var activityRegistry = {
   }
 };
 
-// XXX proper init and shutdown needed
-Services.obs.addObserver(activityRegistry, "activity-handler-registered", false);
-Services.obs.addObserver(activityRegistry, "activity-handler-unregistered", false);
-Services.obs.addObserver(activityRegistry, "openwebapp-installed", false);
-Services.obs.addObserver(activityRegistry, "openwebapp-uninstalled", false);
-
-function registerDefaultWebActivities() {
-  builtinActivities.forEach(function(activity) {
-    activityRegistry.registerActivityHandler(activity.action, activity.url, activity);
-  });
-}
-
-// XXX global startup for the module
-registerDefaultWebActivities();
+var components = [activityRegistry];
+var NSGetFactory = XPCOMUtils.generateNSGetFactory(components);
