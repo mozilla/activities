@@ -6,4 +6,4 @@ MOZ_SDK=$(MOZ_DIST)/sdk/bin
 all: xpt
 
 xpt:
-	PYTHONPATH=$(MOZ_SDK) $(PYTHON) $(MOZ_SDK)/typelib.py components/mozIDOMActivities.idl --cachedir . -I $(MOZ_DIST)/idl/ -o components/mozIDOMActivities.xpt
+	PYTHONPATH=$(MOZ_SDK) $(PYTHON) $(MOZ_SDK)/typelib.py components/mozIActivitiesAPI.idl --cachedir . -I $(MOZ_DIST)/idl/ -o components/mozIActivitiesAPI.xpt

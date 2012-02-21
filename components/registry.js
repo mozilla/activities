@@ -40,7 +40,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 const {classes: Cc, interfaces: Ci, utils: Cu, resources: Cr, manager: Cm} = Components;
-dump("loading registry xpcom\n");
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
@@ -48,8 +47,6 @@ Cu.import("resource://activities/modules/defaultServices.jsm");
 Cu.import("resource://activities/modules/mediatorPanel.jsm");
 
 const NS_XUL = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
-
-const EXPORTED_SYMBOLS = ["activityRegistry"];
 
 // temporary
 let console = {
@@ -69,7 +66,6 @@ let console = {
  */
 function activityRegistry() {
   // XXX proper init and shutdown needed
-  try {
   Services.obs.addObserver(this, "activity-handler-registered", false);
   Services.obs.addObserver(this, "activity-handler-unregistered", false);
   Services.obs.addObserver(this, "openwebapp-installed", false);
@@ -77,24 +73,15 @@ function activityRegistry() {
   
   builtinActivities.forEach(function(activity) {
     this.registerActivityHandler(activity.action, activity.url, activity);
-  });
-  } catch(e) {
-    dump("activityRegistry init "+e+"\n"); 
-  }
-  dump("registry service started\n");
+  }.bind(this));
 }
 
-let activityRegistryClassID = Components.ID("{8d764216-d779-214f-8da0-80e211d759eb}");
-let activityRegistryCID = "@mozilla.org/activitiesRegistry;1";
+const activityRegistryClassID = Components.ID("{8d764216-d779-214f-8da0-80e211d759eb}");
+const activityRegistryCID = "@mozilla.org/activitiesRegistry;1";
 
 activityRegistry.prototype = {
   classID: activityRegistryClassID,
   contractID: activityRegistryCID,
-  classInfo: XPCOMUtils.generateCI({classID: activityRegistryClassID,
-                                    contractID: activityRegistryCID,
-                                    interfaces: [Ci.mozIActivitiesRegistry, Ci.nsIObserver],
-                                    flags: Ci.nsIClassInfo.SINGLETON,
-                                    classDescription: "Web Activities Registry"}),
   QueryInterface: XPCOMUtils.generateQI([Ci.mozIActivitiesRegistry, Ci.nsIObserver]),
 
   _mediatorClasses: {}, // key is service name, value is a callable.
@@ -182,7 +169,7 @@ activityRegistry.prototype = {
       //  cb(activities);
       //});
     } catch (e) { }
-    aCallback(activities);
+    aCallback.handle(activities);
   },
 
   /**
@@ -274,5 +261,5 @@ activityRegistry.prototype = {
   }
 };
 
-var components = [activityRegistry];
-var NSGetFactory = XPCOMUtils.generateNSGetFactory(components);
+const components = [activityRegistry];
+const NSGetFactory = XPCOMUtils.generateNSGetFactory(components);

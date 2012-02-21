@@ -180,14 +180,14 @@ MediatorPanel.prototype = {
     // retry - so hide any old error notifications.
     this.hideErrorNotification();
     if (this.tabData.successCB)
-      this.tabData.successCB(msg);
+      this.tabData.successCB.handle(msg);
   },
 
   onActivityFailure: function(errob) {
     this.panel.hidePopup();
     this.showErrorNotification(errob);
     if (this.tabData.errorCB)
-      this.tabData.errorCB(errob);
+      this.tabData.errorCB.handle(errob);
   },
   
   _processTemplate: function(tmpl, activity) {
