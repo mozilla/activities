@@ -65,11 +65,6 @@ var activityRegistry = {
   _mediatorClasses: {}, // key is service name, value is a callable.
   _activitiesList: {},
 
-  get window() {
-    let wm = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator);
-    return wm.getMostRecentWindow("navigator:browser");
-  },
-
   /**
    * registerActivityHandler
    *
@@ -178,21 +173,25 @@ var activityRegistry = {
    * reset our mediators if an app is installed or uninstalled
    */
   observe: function activityRegistry_observe(aSubject, aTopic, aData) {
-    let panels = this.window.document.getElementsByClassName('activities-panel');
-    if (aTopic === "activity-handler-registered" ||
-        aTopic === "activity-handler-unregistered") {
-      for each (let panel in panels) {
-        if (panel.mediator.action == aData)
-          panel.mediator.reconfigure();
+    // go through all our windows and reconfigure the panels if necessary
+    let windows = Services.wm.getEnumerator("navigator:browser");
+    while (windows.hasMoreElements()) {
+      let panels = this.window.document.getElementsByClassName('activities-panel');
+      if (aTopic === "activity-handler-registered" ||
+          aTopic === "activity-handler-unregistered") {
+        for each (let panel in panels) {
+          if (panel.mediator.action == aData)
+            panel.mediator.reconfigure();
+        }
       }
-    }
-    else if (aTopic === "openwebapp-installed" ||
-             aTopic === "openwebapp-uninstalled") {
-      // XXX TODO look at the change in the app and only reconfigure the related
-      // mediators.
-      for each (let panel in panels) {
-        if (panel.mediator.action == aData)
-          panel.mediator.reconfigure();
+      else if (aTopic === "openwebapp-installed" ||
+               aTopic === "openwebapp-uninstalled") {
+        // XXX TODO look at the change in the app and only reconfigure the related
+        // mediators.
+        for each (let panel in panels) {
+          if (panel.mediator.action == aData)
+            panel.mediator.reconfigure();
+        }
       }
     }
   },
