@@ -206,8 +206,8 @@ var activityRegistry = {
    * @param  jsobject activity
    * @return MediatorPanel instance
    */
-  get: function activityRegistry_get(aActivity) {
-    let panels = this.window.document.getElementsByClassName('activities-panel');
+  get: function activityRegistry_get(aWindow, aActivity) {
+    let panels = aWindow.document.getElementsByClassName('activities-panel');
     for each (let panel in panels) {
       if (aActivity.action == panel.mediator.action) {
         return panel.mediator;
@@ -228,10 +228,10 @@ var activityRegistry = {
    * @param  function success callback
    * @param  function error callback
    */
-  invoke: function activityRegistry_invoke(aActivity, aSuccessCallback, aErrorCallback) {
+  invoke: function activityRegistry_invoke(aWindow, aActivity, aSuccessCallback, aErrorCallback) {
     try {
       // Do we already have a panel for this service for this content window?
-      let mediator = this.get(aActivity);
+      let mediator = this.get(aWindow, aActivity);
       mediator.startActivity(aActivity, aSuccessCallback, aErrorCallback);
       mediator.show();
     } catch (e) {

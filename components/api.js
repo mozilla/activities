@@ -1,5 +1,6 @@
 const {classes: Cc, interfaces: Ci, utils: Cu, resources: Cr, manager: Cm} = Components;
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+Cu.import("resource://activities/modules/registry.jsm");
 
 //----- navigator.mozActivities api implementation
 function NavigatorAPI() {};
@@ -47,7 +48,7 @@ MozActivitiesAPI.prototype = {
         // allowed on a user initiated event.  It would be awesome if
         // nsIScriptSecurityManager::subjectPrincipalIsSystem were scriptable,
         // that should supply what we need.
-        return xulWindow.activityRegistry.invoke(activity, successCB, errorCB);
+        return activityRegistry.invoke(xulWindow, activity, successCB, errorCB);
       },
       __exposedProps__: {
         startActivity: "r"
