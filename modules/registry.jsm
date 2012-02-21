@@ -176,7 +176,8 @@ var activityRegistry = {
     // go through all our windows and reconfigure the panels if necessary
     let windows = Services.wm.getEnumerator("navigator:browser");
     while (windows.hasMoreElements()) {
-      let panels = this.window.document.getElementsByClassName('activities-panel');
+      let window = windows.getNext();
+      let panels = window.document.getElementsByClassName('activities-panel');
       if (aTopic === "activity-handler-registered" ||
           aTopic === "activity-handler-unregistered") {
         for each (let panel in panels) {
@@ -215,7 +216,7 @@ var activityRegistry = {
     // if we didn't find it, create it
     let klass = this._mediatorClasses[aActivity.action] ?
                       this._mediatorClasses[aActivity.action] : MediatorPanel;
-    return new klass(aActivity);
+    return new klass(aWindow, aActivity);
   },
 
   /**

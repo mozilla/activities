@@ -61,7 +61,8 @@ let console = {
  * This class controls the mediator panel UI.  There is one per tab
  * per mediator, created only when needed.
  */
-function MediatorPanel(activity) {
+function MediatorPanel(aWindow, activity) {
+  // DO NOT keep a reference to aWindow
   this.action = activity.action;
   this.defaultData = {
     activity: {
@@ -79,21 +80,20 @@ function MediatorPanel(activity) {
   // content-document-global-created will be called before us.
   Services.obs.addObserver(this, 'document-element-inserted', false);
 
-  this._createPopupPanel();
+  this._createPopupPanel(aWindow);
 }
 
 MediatorPanel.prototype = {
   get panel() {
-    return this.window.document.getElementById('activities-panel-'+this._panelId);
+    return this._panel;
   },
   
   get tabbrowser() {
-    return this.window.document.getElementById('activities-tabbrowser-'+this._panelId);
+    return this._panel.ownerDocument.getElementById('activities-tabbrowser-'+this._panelId);
   },
   
   get window() {
-    let wm = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator);
-    return wm.getMostRecentWindow("navigator:browser");
+    return this._panel.ownerDocument.defaultView;
   },
 
   startActivity: function(aActivity, aResultCallback, aErrorCallback) {
@@ -231,11 +231,11 @@ MediatorPanel.prototype = {
   /* end message api */
   
   
-  _createPanelOverlay: function() {
+  _createPanelOverlay: function(aWindow) {
     // XXX for now, we create a new panel for each mediator method to ensure
     // they are unique per method.
-    let document = this.window.document;
-    let panel = document.createElementNS(NS_XUL, 'panel');
+    let document = aWindow.document;
+    let panel = this._panel = document.createElementNS(NS_XUL, 'panel');
     panel.setAttribute('id', 'activities-panel-'+this._panelId);
     panel.setAttribute('class', 'activities-panel');
     //panel.setAttribute("noautohide", "true");
@@ -279,11 +279,9 @@ MediatorPanel.prototype = {
     panel.mediator = this;
   },
 
-  _createPopupPanel: function() {
-    this._createPanelOverlay();
-    let window = this.window;
-    this.panel = window.document.getElementById('activities-panel-'+this._panelId);
-    let tb = window.document.getElementById('activities-tabbrowser-'+this._panelId);
+  _createPopupPanel: function(aWindow) {
+    this._createPanelOverlay(aWindow);
+    let tb = this.tabbrowser;
     let tmp = {};
     Cu.import("resource://activities/modules/registry.jsm", tmp);
     let {activityRegistry} = tmp;
