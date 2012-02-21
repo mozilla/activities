@@ -125,10 +125,9 @@ var activityRegistry = {
   },
 
   /**
-   * registerMediatorClass
+   * getActivityHandlers
    *
-   * register a class to be used as the mediator in place of the default
-   * mediator class.
+   * get a list of activity handlers
    *
    * @param  string aActivityName     URI or name of activity
    * @param  function aCallback       error callback
@@ -155,7 +154,7 @@ var activityRegistry = {
   },
 
   /**
-   * registerMediatorClass
+   * registerMediator
    *
    * register a class to be used as the mediator in place of the default
    * mediator class.
@@ -163,7 +162,7 @@ var activityRegistry = {
    * @param string  aActivityName    URI or name of activity
    * @param jsclass aClass           implementation of MediatorPanel
    */
-  registerMediatorClass: function activityRegistry_registerMediatorClass(aActivityName, aClass) {
+  registerMediator: function activityRegistry_registerMediator(aActivityName, aClass) {
     if (this._mediatorClasses[aActivityName]) {
       throw new Exception("Mediator already registered for "+aActivityName);
     }
