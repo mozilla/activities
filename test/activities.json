@@ -1,0 +1,9 @@
+{
+  "activities": [
+    {
+      "login": "resource://activities",
+      "action": "share",
+      "url": "./tester.html"
+    }
+  ]
+}
