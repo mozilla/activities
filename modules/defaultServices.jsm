@@ -78,10 +78,5 @@ var builtinActivities = [
     action: "share",
     url: "https://www.facebook.com/sharer/sharer.php",
     urlTemplate: "https://www.facebook.com/sharer/sharer.php?u=%{data}",
-  },
-  {
-    login: "resource://activities",
-    action: "share",
-    url: "resource://activities/test/tester.html"
   }
 ];
