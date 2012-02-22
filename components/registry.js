@@ -70,6 +70,7 @@ function activityRegistry() {
   Services.obs.addObserver(this, "activity-handler-unregistered", false);
   Services.obs.addObserver(this, "openwebapp-installed", false);
   Services.obs.addObserver(this, "openwebapp-uninstalled", false);
+  Services.obs.addObserver(this, "document-element-inserted", false);
   
   builtinActivities.forEach(function(activity) {
     this.registerActivityHandler(activity.action, activity.url, activity);
@@ -86,6 +87,7 @@ activityRegistry.prototype = {
 
   _mediatorClasses: {}, // key is service name, value is a callable.
   _activitiesList: {},
+  _manifestDB: {}, // XXX temporary
 
   /**
    * registerActivityHandler
@@ -187,6 +189,68 @@ activityRegistry.prototype = {
     }
     this._mediatorClasses[aActivityName] = aClass;
   },
+  
+  importManifest: function activityRegistry_importManifest(location, manifest) {
+    // XXX TODO
+    // at this point we assume we have already decided to import and store
+    // this manifest.
+    // we need a persistent storage container for manifest data
+    //console.log("got manifest "+JSON.stringify(manifest));
+    if (!manifest.activities) {
+      console.log("invalid activities manifest");
+      return;
+    }
+    this._manifestDB[location] = manifest;
+    for each(let svc in manifest.activities) {
+      //console.log("service: "+svc.url);
+      svc.url = Services.io.newURI(location, null, null).resolve(svc.url);
+      this.registerActivityHandler(svc.action, svc.url, svc);
+    }
+  },
+  
+  loadManifest: function activityRegistry_loadManifest(url) {
+    let xhr = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance(Ci.nsIXMLHttpRequest);  
+    xhr.open('GET', url, true);
+    let registry = this;
+    xhr.onreadystatechange = function(aEvt) {
+      if (xhr.readyState == 4) {
+        if (xhr.status == 200 || xhr.status == 0) {
+          //console.log("got response "+xhr.responseText);
+          try {
+            registry.importManifest(url, JSON.parse(xhr.responseText));
+          } catch(e) {
+            console.log("importManifest: "+e);
+          }
+        } else {
+          console.log("got status "+xhr.status);
+        }
+      }
+    };
+    //console.log("fetch "+url);
+    xhr.send(null);
+  },
+  
+  discoverActivity: function activityRegistry_discoverActivity(aDocument, aData) {
+    // XXX TODO determine whether or not we actually want to load this
+    // manifest.
+    // 1. is it already loaded, skip it, we'll check it for updates another
+    //    way
+    // 2. does the user have a login for the site, if so, load it
+    // 3. does the fecency for the site warrent loading the manifest and
+    //    offering to the user?
+    let links = aDocument.getElementsByTagName('link');
+    for each(let link in links) {
+      if (link.getAttribute('rel') == 'activities' &&
+          link.getAttribute('type') == 'text/json') {
+        //console.log("found manifest url "+link.getAttribute('href'));
+        let baseUrl = aDocument.defaultView.location.href;
+        let url = Services.io.newURI(baseUrl, null, null).resolve(link.getAttribute('href'));
+        //console.log("base "+baseUrl+" resolved to "+url);
+        if (!this._manifestDB[url])
+          this.loadManifest(url);
+      }
+    }
+  },
 
   /**
    * observer
@@ -194,6 +258,13 @@ activityRegistry.prototype = {
    * reset our mediators if an app is installed or uninstalled
    */
   observe: function activityRegistry_observe(aSubject, aTopic, aData) {
+    if (aTopic == "document-element-inserted") {
+      if (!aSubject.defaultView)
+        return;
+      //console.log("new document "+aSubject.defaultView.location);
+      this.discoverActivity(aSubject, aData);
+      return;
+    }
     // go through all our windows and reconfigure the panels if necessary
     let windows = Services.wm.getEnumerator("navigator:browser");
     while (windows.hasMoreElements()) {
