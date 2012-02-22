@@ -373,5 +373,14 @@ MediatorPanel.prototype = {
    */
   reconfigure: function() {
     // TODO, we need to update our list of services
+    console.log("reconfigure services for mediator");
+    // for now, we're lazy and we just recreate the entire panel
+    try {
+      let window = this.window;
+      window.document.getElementById("mainPopupSet").removeChild(this.panel);
+      this._createPopupPanel(window);
+    } catch(e) {
+      console.log("reconfigure: "+e);
+    }
   }
 }
