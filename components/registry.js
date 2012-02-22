@@ -47,6 +47,7 @@ Cu.import("resource://activities/modules/defaultServices.jsm");
 Cu.import("resource://activities/modules/mediatorPanel.jsm");
 
 const NS_XUL = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+const FRECENCY = 100;
 
 // temporary
 let console = {
@@ -73,7 +74,13 @@ function activityRegistry() {
   Services.obs.addObserver(this, "document-element-inserted", false);
   
   builtinActivities.forEach(function(activity) {
-    this.registerActivityHandler(activity.action, activity.url, activity);
+    let info = this._getUsefulness(activity.url, activity.login);
+    if (info.hasLogin || info.frecency >= FRECENCY) {
+      console.log("installing "+activity.url+ " because "+JSON.stringify(info));
+      this.registerActivityHandler(activity.action, activity.url, activity);
+    }
+    else
+      console.log("skip install of "+activity.url);
   }.bind(this));
 }
 
@@ -88,6 +95,15 @@ activityRegistry.prototype = {
   _mediatorClasses: {}, // key is service name, value is a callable.
   _activitiesList: {},
   _manifestDB: {}, // XXX temporary
+
+  _getUsefulness: function activityRegistry_findMeABetterName(url, loginHost) {
+    let hosturl = Services.io.newURI(url, null, null);
+    loginHost = loginHost || hosturl.scheme+"://"+hosturl.host;
+    return {
+      hasLogin: hasLogin(loginHost),
+      frecency: frecencyForUrl(hosturl.host)
+    }
+  },
 
   /**
    * registerActivityHandler
@@ -190,25 +206,76 @@ activityRegistry.prototype = {
     this._mediatorClasses[aActivityName] = aClass;
   },
   
-  importManifest: function activityRegistry_importManifest(location, manifest) {
+  askUserInstall: function(aWindow, aCallback) {
+    let nId = "activities-ask-install";
+    let nBox = aWindow.gBrowser.getNotificationBox();
+    let notification = nBox.getNotificationWithValue(nId);
+
+    // Check that we aren't already displaying our notification
+    if (!notification) {
+      let message = "This site supports additional functionality for Firefox, would you like to install it?";
+
+      buttons = [{
+        label: "Yes",
+        accessKey: null,
+        callback: function () {
+          aWindow.setTimeout(function () {
+            aCallback();
+          }, 0);
+        }
+      }];
+      nBox.appendNotification(message, nId, null,
+                  nBox.PRIORITY_INFO_MEDIUM, buttons);
+    }
+  },
+  
+  importManifest: function activityRegistry_importManifest(aDocument, location, manifest, userRequestedInstall) {
     // XXX TODO
-    // at this point we assume we have already decided to import and store
-    // this manifest.
     // we need a persistent storage container for manifest data
     //console.log("got manifest "+JSON.stringify(manifest));
     if (!manifest.activities) {
       console.log("invalid activities manifest");
       return;
     }
-    this._manifestDB[location] = manifest;
-    for each(let svc in manifest.activities) {
-      //console.log("service: "+svc.url);
-      svc.url = Services.io.newURI(location, null, null).resolve(svc.url);
-      this.registerActivityHandler(svc.action, svc.url, svc);
+    
+    let registry = this;
+    function installManifest() {
+      registry._manifestDB[location] = manifest;
+      for each(let svc in manifest.activities) {
+        if (!svc.url || !svc.action)
+          continue;
+        //console.log("service: "+svc.url);
+        svc.url = Services.io.newURI(location, null, null).resolve(svc.url);
+        registry.registerActivityHandler(svc.action, svc.url, svc);
+      }
+    }
+    
+    if (userRequestedInstall) {
+      installManifest();
+    }
+    else {
+      let info = this._getUsefulness(location);
+      if (!info.hasLogin && info.frecency < FRECENCY) {
+        //console.log("this site simply is not important, skip it");
+        return;
+      }
+      // we reached here because the user has a login or visits this site
+      // often, so we want to offer an install to the user
+      //console.log("installing "+location+ " because "+JSON.stringify(info));
+      // prompt user for install
+      var xulWindow = aDocument.defaultView.QueryInterface(Ci.nsIInterfaceRequestor)
+                     .getInterface(Ci.nsIWebNavigation)
+                     .QueryInterface(Ci.nsIDocShellTreeItem)
+                     .rootTreeItem
+                     .QueryInterface(Ci.nsIInterfaceRequestor)
+                     .getInterface(Ci.nsIDOMWindow); 
+      this.askUserInstall(xulWindow, installManifest)
+      return;
     }
   },
   
-  loadManifest: function activityRegistry_loadManifest(url) {
+  loadManifest: function activityRegistry_loadManifest(aDocument, url, userRequestedInstall) {
+    // XXX TODO: error and edge case handling
     let xhr = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance(Ci.nsIXMLHttpRequest);  
     xhr.open('GET', url, true);
     let registry = this;
@@ -217,7 +284,7 @@ activityRegistry.prototype = {
         if (xhr.status == 200 || xhr.status == 0) {
           //console.log("got response "+xhr.responseText);
           try {
-            registry.importManifest(url, JSON.parse(xhr.responseText));
+            registry.importManifest(aDocument, url, JSON.parse(xhr.responseText), userRequestedInstall);
           } catch(e) {
             console.log("importManifest: "+e);
           }
@@ -247,7 +314,7 @@ activityRegistry.prototype = {
         let url = Services.io.newURI(baseUrl, null, null).resolve(link.getAttribute('href'));
         //console.log("base "+baseUrl+" resolved to "+url);
         if (!this._manifestDB[url])
-          this.loadManifest(url);
+          this.loadManifest(aDocument, url);
       }
     }
   },
