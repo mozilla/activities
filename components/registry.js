@@ -73,15 +73,26 @@ function activityRegistry() {
   Services.obs.addObserver(this, "openwebapp-uninstalled", false);
   Services.obs.addObserver(this, "document-element-inserted", false);
   
-  builtinActivities.forEach(function(activity) {
+  let toInstall = [];
+  for each(let activity in builtinActivities) {
     let info = this._getUsefulness(activity.url, activity.login);
     if (info.hasLogin || info.frecency >= FRECENCY) {
-      console.log("installing "+activity.url+ " because "+JSON.stringify(info));
-      this.registerActivityHandler(activity.action, activity.url, activity);
+      toInstall.push(activity);
+      //console.log("installing "+activity.url+ " because "+JSON.stringify(info));
     }
-    else
-      console.log("skip install of "+activity.url);
-  }.bind(this));
+    //else
+    //  console.log("skip install of "+activity.url);
+  }
+  if (toInstall.length < 1) {
+    //console.log("no services to install, install everything");
+    // no frecency or logins, install everything
+    // TODO we will need to limit this to localized services
+    toInstall = builtinActivities;
+  }
+  for each(let activity in toInstall) {
+    //console.log("installing "+activity.url);
+    this.registerActivityHandler(activity.action, activity.url, activity);
+  }
 }
 
 const activityRegistryClassID = Components.ID("{8d764216-d779-214f-8da0-80e211d759eb}");
