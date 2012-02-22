@@ -57,11 +57,8 @@ let console = {
 }
 
 
-// XXX TODO activityRegistry should become an XPCOM service, but am not sure
-// how I want to handle registerMediatorClass just yet.
-
 /**
- * activityRegistry is our internal js/xul window api for web activities.  It
+ * activityRegistry is our internal api for web activities. It
  * holds a registry of installed activity handlers, their mediators, and
  * allows for invoking a mediator for an activity.
  */
@@ -105,6 +102,8 @@ activityRegistry.prototype = {
 
   _mediatorClasses: {}, // key is service name, value is a callable.
   _activitiesList: {},
+  
+  // XXX TODO peristent manifest storage, keyed off origin
   _manifestDB: {}, // XXX temporary
 
   _getUsefulness: function activityRegistry_findMeABetterName(url, loginHost) {
