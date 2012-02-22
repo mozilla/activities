@@ -288,13 +288,13 @@ MediatorPanel.prototype = {
       // present an ordered selection based on frecency
       serviceList.sort(function(a,b) a.frecency-b.frecency).reverse();
       let empty = tb.selectedTab;
+      tb.pinTab(tb.addTab("resource://activities/content/preferences.html"));
       serviceList.forEach(function(svc) {
         if (!svc.enabled) return;
         let tab = tb.addTab(svc.url);
         tb.pinTab(tab);
         tab.service = svc;
       });
-      //tb.pinTab(tb.addTab(require("self").data.url("preferences.html")));
       tb.selectTabAtIndex(0);
       tb.removeTab(empty);
     }
