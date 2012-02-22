@@ -207,6 +207,8 @@ activityRegistry.prototype = {
   },
   
   askUserInstall: function(aWindow, aCallback) {
+    // XXX TODO remember if the user says no, use that as a check in
+    // discoverActivity so we bypass a lot of work.
     let nId = "activities-ask-install";
     let nBox = aWindow.gBrowser.getNotificationBox();
     let notification = nBox.getNotificationWithValue(nId);
@@ -298,6 +300,9 @@ activityRegistry.prototype = {
   },
   
   discoverActivity: function activityRegistry_discoverActivity(aDocument, aData) {
+    // XXX this is probably heavy weight, is there a better way to watch for
+    // links in documents?
+    
     // XXX TODO determine whether or not we actually want to load this
     // manifest.
     // 1. is it already loaded, skip it, we'll check it for updates another
