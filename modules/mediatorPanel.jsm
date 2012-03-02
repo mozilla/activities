@@ -135,10 +135,10 @@ MediatorPanel.prototype = {
     let msg = JSON.parse(event.data);
     if (msg.topic != 'activity' || !msg.data)
       return;
-    // XXX find the tab for the activity, this is currently assuming the panel
-    // is still visible so we're getting a postmessage back for the currentTab,
-    // but there is potential that the user has switched tabs in the meantime,
-    // or that a bad actor is haunting us.
+    // BUG 731797 find the tab for the activity, this is currently assuming the
+    // panel is still visible so we're getting a postmessage back for the
+    // currentTab, but there is potential that the user has switched tabs in the
+    // meantime, or that a bad actor is haunting us.
     try {
       if (msg.data.success) {
         this.onActivitySuccess(msg);
@@ -232,8 +232,9 @@ MediatorPanel.prototype = {
   
   
   _createPanelOverlay: function(aWindow) {
-    // XXX for now, we create a new panel for each mediator method to ensure
-    // they are unique per method.
+    // we create a new panel for each mediator method to ensure
+    // they are unique per method.  This could be moved to a panel
+    // xbl widget, but not really necessary
     let document = aWindow.document;
     let panel = this._panel = document.createElementNS(NS_XUL, 'panel');
     panel.setAttribute('id', 'activities-panel-'+this._panelId);
@@ -257,7 +258,7 @@ MediatorPanel.prototype = {
     tab.setAttribute('fadein', 'true');
     tabs.appendChild(tab);
   
-    // XXX THIS IS BAD, will need to replace tabbrowser use with some custom
+    // BUG 731797 will need to replace tabbrowser use with some custom
     // tabbrowser implementation.  tabbrowser expects it is the only
     // tabbrowser in a xul window, we get all kinds of sideaffects here.
     let tb = document.createElementNS(NS_XUL, 'tabbrowser');
@@ -331,7 +332,7 @@ MediatorPanel.prototype = {
     // Check that we aren't already displaying our notification
     if (!notification) {
       let message;
-      // XXX need to strip message to text only
+      // BUG 732274 need to strip message to text only
       if (data && data.message)
         message = data.message;
       else
@@ -372,7 +373,7 @@ MediatorPanel.prototype = {
    *  called to add/remove services
    */
   reconfigure: function() {
-    // TODO, we need to update our list of services
+    // BUG 732271, we need to update our list of services
     //console.log("reconfigure services for mediator");
     // for now, we're lazy and we just recreate the entire panel
     try {

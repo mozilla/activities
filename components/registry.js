@@ -63,7 +63,7 @@ let console = {
  * allows for invoking a mediator for an activity.
  */
 function activityRegistry() {
-  // XXX proper init and shutdown needed
+  // BUG 732278 needs proper shutdown, probably use weakref
   Services.obs.addObserver(this, "activity-handler-registered", false);
   Services.obs.addObserver(this, "activity-handler-unregistered", false);
   Services.obs.addObserver(this, "openwebapp-installed", false);
@@ -83,7 +83,7 @@ function activityRegistry() {
   if (toInstall.length < 1) {
     //console.log("no services to install, install everything");
     // no frecency or logins, install everything
-    // TODO we will need to limit this to localized services
+    // BUG 732257 we will need to limit this to localized services
     toInstall = builtinActivities;
   }
   for each(let activity in toInstall) {
@@ -103,8 +103,8 @@ activityRegistry.prototype = {
   _mediatorClasses: {}, // key is service name, value is a callable.
   _activitiesList: {},
   
-  // XXX TODO peristent manifest storage, keyed off origin
-  _manifestDB: {}, // XXX temporary
+  // BUG 732259 replace _manifestDB with peristent manifest storage, keyed off origin
+  _manifestDB: {}, 
 
   _getUsefulness: function activityRegistry_findMeABetterName(url, loginHost) {
     let hosturl = Services.io.newURI(url, null, null);
@@ -217,7 +217,7 @@ activityRegistry.prototype = {
   },
   
   askUserInstall: function(aWindow, aCallback) {
-    // XXX TODO remember if the user says no, use that as a check in
+    // BUG 732263 remember if the user says no, use that as a check in
     // discoverActivity so we bypass a lot of work.
     let nId = "activities-ask-install";
     let nBox = aWindow.gBrowser.getNotificationBox();
@@ -242,8 +242,7 @@ activityRegistry.prototype = {
   },
   
   importManifest: function activityRegistry_importManifest(aDocument, location, manifest, userRequestedInstall) {
-    // XXX TODO
-    // we need a persistent storage container for manifest data
+    // BUG 732259 we need a persistent storage container for manifest data
     //console.log("got manifest "+JSON.stringify(manifest));
     if (!manifest.activities) {
       console.log("invalid activities manifest");
@@ -287,7 +286,7 @@ activityRegistry.prototype = {
   },
   
   loadManifest: function activityRegistry_loadManifest(aDocument, url, userRequestedInstall) {
-    // XXX TODO: error and edge case handling
+    // BUG 732264 error and edge case handling
     let xhr = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance(Ci.nsIXMLHttpRequest);  
     xhr.open('GET', url, true);
     let registry = this;
@@ -310,10 +309,10 @@ activityRegistry.prototype = {
   },
   
   discoverActivity: function activityRegistry_discoverActivity(aDocument, aData) {
-    // XXX this is probably heavy weight, is there a better way to watch for
+    // BUG 732266 this is probably heavy weight, is there a better way to watch for
     // links in documents?
     
-    // XXX TODO determine whether or not we actually want to load this
+    // TODO determine whether or not we actually want to load this
     // manifest.
     // 1. is it already loaded, skip it, we'll check it for updates another
     //    way
@@ -354,6 +353,8 @@ activityRegistry.prototype = {
       let panels = window.document.getElementsByClassName('activities-panel');
       if (aTopic === "activity-handler-registered" ||
           aTopic === "activity-handler-unregistered") {
+        // BUG 732271 look at the change in the app and only reconfigure the related
+        // mediators.
         for each (let panel in panels) {
           if (panel.mediator.action == aData)
             panel.mediator.reconfigure();
@@ -361,7 +362,7 @@ activityRegistry.prototype = {
       }
       else if (aTopic === "openwebapp-installed" ||
                aTopic === "openwebapp-uninstalled") {
-        // XXX TODO look at the change in the app and only reconfigure the related
+        // BUG 732271 look at the change in the app and only reconfigure the related
         // mediators.
         for each (let panel in panels) {
           if (panel.mediator.action == aData)
