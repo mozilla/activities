@@ -383,9 +383,11 @@ activityRegistry.prototype = {
    */
   get: function activityRegistry_get(aWindow, aActivity) {
     let panels = aWindow.document.getElementsByClassName('activities-panel');
-    for each (let panel in panels) {
-      if (aActivity.action == panel.mediator.action) {
-        return panel.mediator;
+    if (panels.length > 0) {
+      for each (let panel in panels) {
+        if (aActivity.action == panel.mediator.action) {
+          return panel.mediator;
+        }
       }
     }
     // if we didn't find it, create it
