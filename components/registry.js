@@ -64,12 +64,11 @@ let console = {
  * allows for invoking a mediator for an activity.
  */
 function activityRegistry() {
-  // BUG 732278 needs proper shutdown, probably use weakref
-  Services.obs.addObserver(this, "activity-handler-registered", false);
-  Services.obs.addObserver(this, "activity-handler-unregistered", false);
-  Services.obs.addObserver(this, "openwebapp-installed", false);
-  Services.obs.addObserver(this, "openwebapp-uninstalled", false);
-  Services.obs.addObserver(this, "document-element-inserted", false);
+  Services.obs.addObserver(this, "activity-handler-registered", true);
+  Services.obs.addObserver(this, "activity-handler-unregistered", true);
+  Services.obs.addObserver(this, "openwebapp-installed", true);
+  Services.obs.addObserver(this, "openwebapp-uninstalled", true);
+  Services.obs.addObserver(this, "document-element-inserted", true);
   
   let toInstall = [];
   for each(let activity in builtinActivities) {
@@ -109,7 +108,7 @@ const activityRegistryCID = "@mozilla.org/activitiesRegistry;1";
 activityRegistry.prototype = {
   classID: activityRegistryClassID,
   contractID: activityRegistryCID,
-  QueryInterface: XPCOMUtils.generateQI([Ci.mozIActivitiesRegistry, Ci.nsIObserver]),
+  QueryInterface: XPCOMUtils.generateQI([Ci.mozIActivitiesRegistry, Ci.nsISupportsWeakReference, Ci.nsIObserver]),
 
   _mediatorClasses: {}, // key is service name, value is a callable.
   _activitiesList: {},
