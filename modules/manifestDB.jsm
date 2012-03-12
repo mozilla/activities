@@ -74,6 +74,14 @@ var ManifestDB = (function() {
     storage.put(origin, manifest, cb);
   }
 
+  function insert(origin, manifest, cb) {
+    // TODO validate the manifest now?  what do we validate?
+    origin = normalizeOrigin(origin);
+    manifest.last_modified = new Date().getTime();
+    manifest.origin = origin;
+    storage.insert(origin, manifest, cb);
+  }
+
   function remove(origin, cb) {
     var self = this;
     origin = normalizeOrigin(origin);
@@ -92,9 +100,14 @@ var ManifestDB = (function() {
     origin = normalizeOrigin(origin);
     storage.get(origin, cb);
   }
+  
+  function iterate(cb) {
+    storage.iterate(cb);
+  }
 
   return {
-    iterate: storage.iterate,
+    insert: insert,
+    iterate: iterate,
     put: put,
     remove: remove,
     get: get
