@@ -38,6 +38,7 @@
 
 const {classes: Cc, interfaces: Ci, utils: Cu} = Components;
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://activities/modules/typedStorage.jsm");
 
 // a lightweight wrapper around TypedStorage to handle simple validation
@@ -55,8 +56,15 @@ var ManifestDB = (function() {
   // "resource://foo/bar" - thus, any services etc for such apps must be
   // under resource://foo/bar"
   // XXX - is this handling of builtin apps OK???
-  function normalizeOrigin(origin) {
-    return origin;
+  function normalizeOrigin(aURL) {
+    try {
+      let uri = Services.io.newURI(aURL, null, null);
+      if (uri.scheme == 'resource') return aURL;
+      return uri.host;
+    } catch(e) {
+      dump(e+"\n");
+    }
+    return aURL;
   }
 
   /**
