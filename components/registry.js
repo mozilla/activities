@@ -45,6 +45,7 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://activities/modules/defaultServices.jsm");
 Cu.import("resource://activities/modules/mediatorPanel.jsm");
+Cu.import("resource://activities/modules/manifestDB.jsm");
 
 const NS_XUL = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 const FRECENCY = 100;
@@ -63,12 +64,11 @@ let console = {
  * allows for invoking a mediator for an activity.
  */
 function activityRegistry() {
-  // BUG 732278 needs proper shutdown, probably use weakref
-  Services.obs.addObserver(this, "activity-handler-registered", false);
-  Services.obs.addObserver(this, "activity-handler-unregistered", false);
-  Services.obs.addObserver(this, "openwebapp-installed", false);
-  Services.obs.addObserver(this, "openwebapp-uninstalled", false);
-  Services.obs.addObserver(this, "document-element-inserted", false);
+  Services.obs.addObserver(this, "activity-handler-registered", true);
+  Services.obs.addObserver(this, "activity-handler-unregistered", true);
+  Services.obs.addObserver(this, "openwebapp-installed", true);
+  Services.obs.addObserver(this, "openwebapp-uninstalled", true);
+  Services.obs.addObserver(this, "document-element-inserted", true);
   
   let toInstall = [];
   for each(let activity in builtinActivities) {
@@ -87,9 +87,19 @@ function activityRegistry() {
     toInstall = builtinActivities;
   }
   for each(let activity in toInstall) {
-    //console.log("installing "+activity.url);
-    this.registerActivityHandler(activity.action, activity.url, activity);
+    //  initialize the db with our builtins
+    // TODO if a real provider implementation is added later, we don't want to
+    // overwrite that, however, if we're upgrading a builtin, we need to overwrite
+    ManifestDB.insert(activity.url, {activities: [activity]});
   }
+  
+  let self = this;
+  ManifestDB.iterate(function(key, manifest) {
+    //console.log("got manifest from manifestDB "+key+": "+JSON.stringify(manifest));
+    for each(let activity in manifest.activities) {
+      self.registerActivityHandler(activity.action, activity.url, activity);
+    }
+  });
 }
 
 const activityRegistryClassID = Components.ID("{8d764216-d779-214f-8da0-80e211d759eb}");
@@ -98,14 +108,11 @@ const activityRegistryCID = "@mozilla.org/activitiesRegistry;1";
 activityRegistry.prototype = {
   classID: activityRegistryClassID,
   contractID: activityRegistryCID,
-  QueryInterface: XPCOMUtils.generateQI([Ci.mozIActivitiesRegistry, Ci.nsIObserver]),
+  QueryInterface: XPCOMUtils.generateQI([Ci.mozIActivitiesRegistry, Ci.nsISupportsWeakReference, Ci.nsIObserver]),
 
   _mediatorClasses: {}, // key is service name, value is a callable.
   _activitiesList: {},
   
-  // BUG 732259 replace _manifestDB with peristent manifest storage, keyed off origin
-  _manifestDB: {}, 
-
   _getUsefulness: function activityRegistry_findMeABetterName(url, loginHost) {
     let hosturl = Services.io.newURI(url, null, null);
     loginHost = loginHost || hosturl.scheme+"://"+hosturl.host;
@@ -251,14 +258,15 @@ activityRegistry.prototype = {
     
     let registry = this;
     function installManifest() {
-      registry._manifestDB[location] = manifest;
-      for each(let svc in manifest.activities) {
-        if (!svc.url || !svc.action)
-          continue;
-        //console.log("service: "+svc.url);
-        svc.url = Services.io.newURI(location, null, null).resolve(svc.url);
-        registry.registerActivityHandler(svc.action, svc.url, svc);
-      }
+      ManifestDB.put(location, manifest, function() {
+        for each(let svc in manifest.activities) {
+          if (!svc.url || !svc.action)
+            continue;
+          //console.log("service: "+svc.url);
+          svc.url = Services.io.newURI(location, null, null).resolve(svc.url);
+          registry.registerActivityHandler(svc.action, svc.url, svc);
+        }
+      });
     }
     
     if (userRequestedInstall) {
@@ -327,8 +335,11 @@ activityRegistry.prototype = {
         let baseUrl = aDocument.defaultView.location.href;
         let url = Services.io.newURI(baseUrl, null, null).resolve(link.getAttribute('href'));
         //console.log("base "+baseUrl+" resolved to "+url);
-        if (!this._manifestDB[url])
-          this.loadManifest(aDocument, url);
+        ManifestDB.get(url, function(item) {
+          if (!item) {
+            this.loadManifest(aDocument, url);
+          }
+        });
       }
     }
   },
