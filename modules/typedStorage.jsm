@@ -192,10 +192,11 @@ ObjectStore.prototype = {
 
   // Helper function for async execute with no results
   _doAsyncExecute: function(statement, cb) {
+    let self = this;
     statement.executeAsync({
       handleResult: function(result) {},
       handleError: function(error) {
-        console.log("Error while executing " + statement + "on" + this._objType + ": " + error + "; " + this._dbConn.lastErrorString + " (" + this._dbConn.lastError + ")");
+        console.log("Error while executing " + statement + "on" + self._objType + ": " + error + "; " + self._dbConn.lastErrorString + " (" + self._dbConn.lastError + ")");
       },
       handleCompletion: function(reason) {
         statement.reset();
