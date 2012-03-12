@@ -56,11 +56,11 @@ TypedStorageImpl.prototype = {
 
 function ObjectStore(objType) {
   let file = Cc["@mozilla.org/file/directory_service;1"].
-  getService(Ci.nsIProperties).
-  get("ProfD", Ci.nsIFile);
-  file.append("applications.sqlite");
+              getService(Ci.nsIProperties).
+              get("ProfD", Ci.nsIFile);
+              file.append("applications.sqlite");
   let storageService = Cc["@mozilla.org/storage/service;1"].
-  getService(Ci.mozIStorageService);
+              getService(Ci.mozIStorageService);
 
   // Will also create the file if it does not exist
   let dbConn = storageService.openDatabase(file);
@@ -118,6 +118,13 @@ ObjectStore.prototype = {
     });
   },
 
+  insert: function(key, value, cb) {
+    let setStatement = this._dbConn.createStatement("INSERT INTO " + this._objType + " (key, data) VALUES (:key, :data )");
+    setStatement.params.key = key;
+    setStatement.params.data = JSON.stringify(value);
+    this._doAsyncExecute(setStatement, cb);
+  },
+
   put: function(key, value, cb) {
     let setStatement = this._dbConn.createStatement("INSERT OR REPLACE INTO " + this._objType + " (key, data) VALUES (:key, :data )");
     setStatement.params.key = key;
@@ -172,9 +179,10 @@ ObjectStore.prototype = {
 
   iterate: function(cb) {
     // sometimes asynchronous calls can make your head hurt
+    let store = this;
     this.keys(function(allKeys) {
       for (let i = 0; i < allKeys.length; i++) {
-        this.get(allKeys[i], function(values) {
+        store.get(allKeys[i], function(values) {
           let result = cb(allKeys[i], values);
           if (result === false) return;
         });
