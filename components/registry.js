@@ -86,17 +86,17 @@ function activityRegistry() {
     // BUG 732257 we will need to limit this to localized services
     toInstall = builtinActivities;
   }
+  for each(let activity in toInstall) {
+    //  initialize the db with our builtins
+    // TODO if a real provider implementation is added later, we don't want to
+    // overwrite that, however, if we're upgrading a builtin, we need to overwrite
+    ManifestDB.insert(activity.url, {activities: [activity]});
+  }
   
   let self = this;
-  ManifestDB.iterate(function(services) {
-    for each(let manifest in services) {
-      for each(let activity in manifest.activities) {
-        toInstall.push(activity);
-      }
-    }
-    
-    for each(let activity in toInstall) {
-      //console.log("installing "+activity.url);
+  ManifestDB.iterate(function(key, manifest) {
+    //console.log("got manifest from manifestDB "+key+": "+JSON.stringify(manifest));
+    for each(let activity in manifest.activities) {
       self.registerActivityHandler(activity.action, activity.url, activity);
     }
   });
