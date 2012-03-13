@@ -328,8 +328,9 @@ activityRegistry.prototype = {
     // 3. does the fecency for the site warrent loading the manifest and
     //    offering to the user?
     let links = aDocument.getElementsByTagName('link');
-    for each(let link in links) {
-      if (link.getAttribute('rel') == 'activities' &&
+    for (let index=0; index < links.length; index++) {
+      let link = links[index];
+      if (link.getAttribute('rel') == 'manifest' &&
           link.getAttribute('type') == 'text/json') {
         //console.log("found manifest url "+link.getAttribute('href'));
         let baseUrl = aDocument.defaultView.location.href;
