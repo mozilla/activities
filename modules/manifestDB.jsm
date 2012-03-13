@@ -45,7 +45,7 @@ Cu.import("resource://activities/modules/typedStorage.jsm");
 // of origin keys and manifest data
 var ManifestDB = (function() {
   var typedStorage = TypedStorage();
-  var storage = typedStorage.open("services");
+  var storage = typedStorage.open("services", "applications");
 
   // TODO: 
   // given an origin, normalize it (like, http://foo:80 --> http://foo), or

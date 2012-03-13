@@ -49,21 +49,22 @@ var console = {
 
 function TypedStorageImpl() {}
 TypedStorageImpl.prototype = {
-  open: function(objType) {
-    return new ObjectStore(objType);
+  open: function(objType, dbName) {
+    return new ObjectStore(objType, dbName);
   }
 };
 
-function ObjectStore(objType) {
+function ObjectStore(objType, dbName) {
   let file = Cc["@mozilla.org/file/directory_service;1"].
               getService(Ci.nsIProperties).
               get("ProfD", Ci.nsIFile);
-              file.append("applications.sqlite");
+              file.append(dbName + ".sqlite");
   let storageService = Cc["@mozilla.org/storage/service;1"].
               getService(Ci.mozIStorageService);
 
   // Will also create the file if it does not exist
   let dbConn = storageService.openDatabase(file);
+  this._dbConn = dbConn;
 
   // See if the table is already created:
   let statement;
@@ -85,11 +86,11 @@ function ObjectStore(objType) {
     }
   }
 
-  this._dbConn = dbConn;
   this._objType = objType;
 }
 ObjectStore.prototype = {
   get: function(key, cb) {
+    let self = this;
     let value;
     let getStatement = this._dbConn.createStatement("SELECT data FROM " + this._objType + " WHERE key = :key LIMIT 1");
     getStatement.params.key = key;
@@ -101,7 +102,7 @@ ObjectStore.prototype = {
         }
       },
       handleError: function(error) {
-        console.log("Error while selecting from table " + this._objType + ": " + error + "; " + this._dbConn.lastErrorString + " (" + this._dbConn.lastError + ")");
+        console.log("Error while selecting from table " + self._objType + ": " + error + "; " + self._dbConn.lastErrorString + " (" + this._dbConn.lastError + ")");
       },
       handleCompletion: function(reason) {
         getStatement.reset();
@@ -153,6 +154,7 @@ ObjectStore.prototype = {
     let resultKeys = [];
     let keyStatement = this._dbConn.createStatement("SELECT key FROM " + this._objType);
 
+    let self = this;
     keyStatement.executeAsync({
       handleResult: function(result) {
         let row;
@@ -161,7 +163,7 @@ ObjectStore.prototype = {
         }
       },
       handleError: function(error) {
-        console.log("Error while getting keys for " + this._objType + ": " + error + "; " + this._dbConn.lastErrorString + " (" + this._dbConn.lastError + ")");
+        console.log("Error while getting keys for " + self._objType + ": " + error + "; " + self._dbConn.lastErrorString + " (" + self._dbConn.lastError + ")");
       },
       handleCompletion: function(reason) {
         keyStatement.reset();
