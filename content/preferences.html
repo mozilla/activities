@@ -32,6 +32,9 @@ window.addEventListener("message", function(event) {
         //document.getElementById('output').value = event.data;
         for (var i=0; i < services.length; i++) {
             var svc = services[i];
+            if (document.getElementById(svc.name)) {
+                continue;
+            }
             var btn = document.createElement('button');
             var img = document.createElement('img');
             var lbl = document.createElement('label');
@@ -40,6 +43,7 @@ window.addEventListener("message", function(event) {
             img.setAttribute('for', svc.name);
             lbl.setAttribute('for', svc.name);
             lbl.appendChild(document.createTextNode(svc.name));
+            btn.setAttribute('id', svc.name);
             btn.setAttribute('type', "checkbox");
             btn.setAttribute('action', svc.action);
             btn.setAttribute('value', svc.url);
