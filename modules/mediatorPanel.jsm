@@ -162,19 +162,14 @@ MediatorPanel.prototype = {
     if (msg.topic !== "preference-change")
       return;
     let data = msg.data;
-    console.log(event.data);
     let activityRegistry = Cc["@mozilla.org/activitiesRegistry;1"]
                             .getService(Ci.mozIActivitiesRegistry);
     function cb(serviceList) {
-      console.log("got services");
       serviceList.forEach(function(svc) {
         if (svc.url == data.url) {
-          console.log("found svc, updating registry");
           svc.enabled = data.enabled;
           activityRegistry.registerActivityHandler(svc.action, svc.url, svc);
           return;
-        } else {
-          console.log("not "+svc.url);
         }
       });
     }
@@ -336,28 +331,47 @@ MediatorPanel.prototype = {
   _createPopupPanel: function(aWindow) {
     this._createPanelOverlay(aWindow);
     let tb = this.tabbrowser;
-    let activityRegistry = Cc["@mozilla.org/activitiesRegistry;1"]
-                            .getService(Ci.mozIActivitiesRegistry);
+    // load prefs panel
     tb.pinTab(tb.selectedTab);
     tb.loadURI(PREFS_URL, null, null);
-    function cb(serviceList) {
-      // present an ordered selection based on frecency
-      serviceList.sort(function(a,b) a.frecency-b.frecency).reverse();
-      let empty = tb.selectedTab;
-      serviceList.forEach(function(svc) {
-        if (!svc.enabled) return;
-        let tab = tb.addTab(svc.url);
-        tb.pinTab(tab);
-        tab.service = svc;
-      });
-      //tb.pinTab(tb.addTab(require("self").data.url("preferences.html")));
-      tb.selectTabAtIndex(0);
-      //tb.removeTab(empty);
-    }
-    activityRegistry.getActivityHandlers(this.action, cb);
+    this._updatePanelServices();
+    tb.selectTabAtIndex(0);
     this.panel.addEventListener('popupshown', this.onPanelShown.bind(this));
     this.panel.addEventListener('popuphidden', this.onPanelHidden.bind(this));
     this.panel.addEventListener('TabSelect', this.onPanelShown.bind(this)); // use onPanelShown to resend activity
+  },
+  
+  _tabForService: function(svc) {
+    let tabs = this.tabbrowser.tabs;
+    for (var i=0; i < tabs.length; i++) {
+      if (tabs[i].service && svc.url == tabs[i].service.url) return tabs[i];
+    }
+    return null;
+  },
+  
+  _updatePanelServices: function() {
+    let tb = this.tabbrowser;
+    let activityRegistry = Cc["@mozilla.org/activitiesRegistry;1"]
+                            .getService(Ci.mozIActivitiesRegistry);
+    let self = this;
+    function cb(serviceList) {
+      // present an ordered selection based on frecency
+      serviceList.sort(function(a,b) a.frecency-b.frecency).reverse();
+      serviceList.forEach(function(svc) {
+        // do we have a tab for this service?
+        let tab = self._tabForService(svc);
+        if (tab) {
+          if (!svc.enabled) tb.removeTab(tab);
+          return;
+        }
+        if (!svc.enabled)
+          return;
+        tab = tb.addTab(svc.url);
+        tb.pinTab(tab);
+        tab.service = svc;
+      });
+    }
+    activityRegistry.getActivityHandlers(this.action, cb);
   },
 
   /**
@@ -428,14 +442,8 @@ MediatorPanel.prototype = {
    *  called to add/remove services
    */
   reconfigure: function() {
-    console.log("reconfiguring our panel");
-    // BUG 732271, we need to update our list of services
-    //console.log("reconfigure services for mediator");
-    // for now, we're lazy and we just recreate the entire panel
     try {
-      let window = this.window;
-      window.document.getElementById("mainPopupSet").removeChild(this.panel);
-      this._createPopupPanel(window);
+      this._updatePanelServices();
     } catch(e) {
       console.log("reconfigure: "+e);
     }
