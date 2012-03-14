@@ -241,7 +241,7 @@ MediatorPanel.prototype = {
     let url = tmpl.replace("%{data}", activity.data);
     for (var d in activity.extras) {
       let repl = "%{"+d+"}";
-      url = url.replace(repl, activity.extras[d]);
+      url = url.replace(repl, encodeURIComponent(activity.extras[d]));
     }
     return url;
   },
@@ -255,7 +255,8 @@ MediatorPanel.prototype = {
       // it simple and use those for now, with the "upgrade" path being a full
       // activities implementation.
       let url = this._processTemplate(tab.service.urlTemplate, this.tabData.activity);
-      tb.contentWindow.location = url;
+      if (url != tb.contentWindow.location.href)
+        tb.contentWindow.location = url;
     } else {
       try {
         var win = tb.contentWindow;
