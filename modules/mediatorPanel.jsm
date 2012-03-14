@@ -49,6 +49,8 @@ const NS_XUL = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 const EXPORTED_SYMBOLS = ["MediatorPanel"];
 
 const PREFS_URL = "chrome://activities/content/preferences.html";
+// TODO BUG 735885 get a proper icon
+const PREFS_ICON = "chrome://browser/skin/tabbrowser/newtab.png";
 
 // temporary
 let console = {
@@ -124,6 +126,7 @@ MediatorPanel.prototype = {
     let tab = tb.tabs[i];
     if (document.location == PREFS_URL) {
       this.hookupPrefs(document);
+      tb.setIcon(tab, PREFS_ICON);
       return;
     }
     if (!tab.service) {
@@ -250,6 +253,9 @@ MediatorPanel.prototype = {
     // nothing to do here yet, but sub-classes might want to override this.
     let tb = this.window.document.getElementById('activities-tabbrowser-'+this._panelId);
     let tab = tb.selectedTab;
+    if (!tab.service)
+      return;
+
     if (tab.service.urlTemplate) {
       // our builtins are most likely urlTemplate based share pages, we'll keep
       // it simple and use those for now, with the "upgrade" path being a full
@@ -332,11 +338,13 @@ MediatorPanel.prototype = {
   _createPopupPanel: function(aWindow) {
     this._createPanelOverlay(aWindow);
     let tb = this.tabbrowser;
+    let empty = tb.selectedTab;
     // load prefs panel
-    tb.pinTab(tb.selectedTab);
-    tb.loadURI(PREFS_URL, null, null);
     this._updatePanelServices();
+    let tab = tb.addTab(PREFS_URL);
+    tb.pinTab(tab);
     tb.selectTabAtIndex(0);
+    tb.removeTab(empty);
     this.panel.addEventListener('popupshown', this.onPanelShown.bind(this));
     this.panel.addEventListener('popuphidden', this.onPanelHidden.bind(this));
     this.panel.addEventListener('TabSelect', this.onPanelShown.bind(this)); // use onPanelShown to resend activity
@@ -356,6 +364,8 @@ MediatorPanel.prototype = {
                             .getService(Ci.mozIActivitiesRegistry);
     let self = this;
     function cb(serviceList) {
+      // get the last tab
+      let prefTab = tb.tabs[tb.tabs.length-1];
       // present an ordered selection based on frecency
       serviceList.sort(function(a,b) a.frecency-b.frecency).reverse();
       serviceList.forEach(function(svc) {
@@ -371,6 +381,7 @@ MediatorPanel.prototype = {
         tb.pinTab(tab);
         tab.service = svc;
       });
+      tb.moveTabTo(prefTab, tb.tabs.length-1);
     }
     activityRegistry.getActivityHandlers(this.action, cb);
   },
