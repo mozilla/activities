@@ -127,6 +127,7 @@ MediatorPanel.prototype = {
     if (document.location == PREFS_URL) {
       this.hookupPrefs(document);
       tb.setIcon(tab, PREFS_ICON);
+      document.defaultView.addEventListener("message", this.onPrefsMessage.bind(this), true);
       return;
     }
     if (!tab.service) {
@@ -157,7 +158,6 @@ MediatorPanel.prototype = {
       }
     }
     activityRegistry.getActivityHandlers(this.action, cb);
-    document.defaultView.addEventListener("message", this.onPrefsMessage.bind(this), true);
   },
   
   onPrefsMessage: function(event) {
@@ -456,6 +456,8 @@ MediatorPanel.prototype = {
   reconfigure: function() {
     try {
       this._updatePanelServices();
+      let document = this.tabbrowser.browsers[this.tabbrowser.browsers.length-1].contentDocument;
+      this.hookupPrefs(document);
     } catch(e) {
       console.log("reconfigure: "+e);
     }
