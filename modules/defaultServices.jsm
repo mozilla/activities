@@ -44,39 +44,51 @@ function frecencyForUrl(host)
 // the mediator will enable via login and frecency, and sort by frecency.
 var builtinActivities = [
   {
+    name: "Yammer",
     login: "https://www.yammer.com",
     action: "share",
     url: "https://www.yammer.com/home/bookmarklet",
     urlTemplate: "https://www.yammer.com/home/bookmarklet?u=%{data}",
+    icon: "https://www.yammer.com/favicon.ico",
   },
   {
+    name: "Digg",
     login: "http://digg.com",
     action: "share",
     url: "http://digg.com/submit", 
     urlTemplate: "http://digg.com/submit?url=%{data}",
+    icon: "http://digg.com/favicon.ico"
   },
   {
+    name: "Google+",
     login: "https://www.google.com",
     action: "share",
     url: "https://plusone.google.com/_/+1/confirm",
     urlTemplate: "https://plusone.google.com/_/+1/confirm?hl=en&url=%{data}",
+    icon: "https://plusone.google.com/favicon.ico"
   },
   {
+    name: "GMail",
     login: "https://www.google.com",
     action: "share",
     url: "https://mail.google.com/mail/?view=cm&ui=2&tf=0&fs=1",
     urlTemplate: "https://mail.google.com/mail/?view=cm&ui=2&tf=0&fs=1&body=%{data}&su=%{title}",
+    icon: "https://mail.google.com/favicon.ico"
   },
   {
+    name: "Twitter",
     login: "https://twitter.com",
     action: "share",
     url: "https://twitter.com/intent/tweet",
     urlTemplate: "https://twitter.com/intent/tweet?url=%{data}",
+    icon: "https://twitter.com/phoenix/favicon.ico"
   },
   {
+    name: "Facebook",
     login: "https://www.facebook.com",
     action: "share",
     url: "https://www.facebook.com/sharer/sharer.php",
     urlTemplate: "https://www.facebook.com/sharer/sharer.php?u=%{data}",
+    icon: "https://www.facebook.com/favicon.ico"
   }
 ];

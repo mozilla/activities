@@ -48,6 +48,8 @@ const NS_XUL = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 // other Mediators may subclass our default mediator
 const EXPORTED_SYMBOLS = ["MediatorPanel"];
 
+const PREFS_URL = "chrome://activities/content/preferences.html";
+
 // temporary
 let console = {
   log: function(s) {
@@ -120,6 +122,10 @@ MediatorPanel.prototype = {
         !tb.getBrowserForDocument(document)) return;
     let i = tb.getBrowserIndexForDocument(document);
     let tab = tb.tabs[i];
+    if (document.location == PREFS_URL) {
+      this.hookupPrefs(document);
+      return;
+    }
     if (!tab.service) {
       return
     }
@@ -127,6 +133,52 @@ MediatorPanel.prototype = {
       document.defaultView.removeEventListener('load', arguments.callee, false);
       document.defaultView.addEventListener("message", this.onMessage.bind(this), true);
     }.bind(this), true);
+  },
+  
+  hookupPrefs: function(document) {
+    let activityRegistry = Cc["@mozilla.org/activitiesRegistry;1"]
+                            .getService(Ci.mozIActivitiesRegistry);
+    function cb(serviceList) {
+      // present an ordered selection based on frecency
+      serviceList.sort(function(a,b) a.frecency-b.frecency).reverse();
+      try {
+        var win = document.defaultView;
+        //console.log("postMessage to "+win.location.protocol + "//" + win.location.host);
+        let data = JSON.stringify({
+          topic: "handlers",
+          data: serviceList
+        });
+        win.postMessage(data, "*");
+      } catch(e) {
+        console.log("postMessage: "+e)
+      }
+    }
+    activityRegistry.getActivityHandlers(this.action, cb);
+    document.defaultView.addEventListener("message", this.onPrefsMessage.bind(this), true);
+  },
+  
+  onPrefsMessage: function(event) {
+    let msg = JSON.parse(event.data);
+    if (msg.topic !== "preference-change")
+      return;
+    let data = msg.data;
+    console.log(event.data);
+    let activityRegistry = Cc["@mozilla.org/activitiesRegistry;1"]
+                            .getService(Ci.mozIActivitiesRegistry);
+    function cb(serviceList) {
+      console.log("got services");
+      serviceList.forEach(function(svc) {
+        if (svc.url == data.url) {
+          console.log("found svc, updating registry");
+          svc.enabled = data.enabled;
+          activityRegistry.registerActivityHandler(svc.action, svc.url, svc);
+          return;
+        } else {
+          console.log("not "+svc.url);
+        }
+      });
+    }
+    activityRegistry.getActivityHandlers(data.action, cb);
   },
   
   onMessage: function(event) {
@@ -203,22 +255,23 @@ MediatorPanel.prototype = {
     // nothing to do here yet, but sub-classes might want to override this.
     let tb = this.window.document.getElementById('activities-tabbrowser-'+this._panelId);
     let tab = tb.selectedTab;
-    if (tab.service.app.urlTemplate) {
+    if (tab.service.urlTemplate) {
       // our builtins are most likely urlTemplate based share pages, we'll keep
       // it simple and use those for now, with the "upgrade" path being a full
       // activities implementation.
-      let url = this._processTemplate(tab.service.app.urlTemplate, this.tabData.activity);
+      let url = this._processTemplate(tab.service.urlTemplate, this.tabData.activity);
       tb.contentWindow.location = url;
     } else {
       try {
         var win = tb.contentWindow;
-        //console.log("postMessage to "+win.location.protocol + "//" + win.location.host);
+        let location = win.location.protocol=='file:' ? "*" :
+                       win.location.protocol + "//" + win.location.host;
         let data = JSON.stringify({
           topic: "activity",
           activity: this.tabData.activity
         });
         //console.log("   data is "+data);
-        win.postMessage(data, win.location.protocol + "//" + win.location.host);
+        win.postMessage(data, location);
       } catch(e) {
         console.log("postMessage: "+e)
       }
@@ -285,6 +338,8 @@ MediatorPanel.prototype = {
     let tb = this.tabbrowser;
     let activityRegistry = Cc["@mozilla.org/activitiesRegistry;1"]
                             .getService(Ci.mozIActivitiesRegistry);
+    tb.pinTab(tb.selectedTab);
+    tb.loadURI(PREFS_URL, null, null);
     function cb(serviceList) {
       // present an ordered selection based on frecency
       serviceList.sort(function(a,b) a.frecency-b.frecency).reverse();
@@ -297,7 +352,7 @@ MediatorPanel.prototype = {
       });
       //tb.pinTab(tb.addTab(require("self").data.url("preferences.html")));
       tb.selectTabAtIndex(0);
-      tb.removeTab(empty);
+      //tb.removeTab(empty);
     }
     activityRegistry.getActivityHandlers(this.action, cb);
     this.panel.addEventListener('popupshown', this.onPanelShown.bind(this));
@@ -373,6 +428,7 @@ MediatorPanel.prototype = {
    *  called to add/remove services
    */
   reconfigure: function() {
+    console.log("reconfiguring our panel");
     // BUG 732271, we need to update our list of services
     //console.log("reconfigure services for mediator");
     // for now, we're lazy and we just recreate the entire panel

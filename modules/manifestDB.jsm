@@ -45,7 +45,7 @@ Cu.import("resource://activities/modules/typedStorage.jsm");
 // of origin keys and manifest data
 var ManifestDB = (function() {
   var typedStorage = TypedStorage();
-  var storage = typedStorage.open("services", "applications");
+  var storage = typedStorage.open("services", "activities");
 
   // TODO: 
   // given an origin, normalize it (like, http://foo:80 --> http://foo), or
@@ -59,7 +59,7 @@ var ManifestDB = (function() {
   function normalizeOrigin(aURL) {
     try {
       let uri = Services.io.newURI(aURL, null, null);
-      if (uri.scheme == 'resource') return aURL;
+      if (uri.scheme == 'resource' || uri.scheme == 'file') return aURL;
       return uri.host;
     } catch(e) {
       dump(e+"\n");
@@ -74,39 +74,39 @@ var ManifestDB = (function() {
    * @param manifest  manifest record (js object)
    * @param cb      callback function
    */
-  function put(origin, manifest, cb) {
+  function put(manifest, cb) {
     // TODO validate the manifest now?  what do we validate?
-    origin = normalizeOrigin(origin);
+    origin = normalizeOrigin(manifest.url);
     manifest.last_modified = new Date().getTime();
     manifest.origin = origin;
-    storage.put(origin, manifest, cb);
+    storage.put(manifest.action, origin, manifest, cb);
   }
 
-  function insert(origin, manifest, cb) {
+  function insert(manifest, cb) {
     // TODO validate the manifest now?  what do we validate?
-    origin = normalizeOrigin(origin);
+    origin = normalizeOrigin(manifest.url);
     manifest.last_modified = new Date().getTime();
     manifest.origin = origin;
-    storage.insert(origin, manifest, cb);
+    storage.insert(manifest.action, origin, manifest, cb);
   }
 
-  function remove(origin, cb) {
+  function remove(action, origin, cb) {
     var self = this;
     origin = normalizeOrigin(origin);
-    storage.get(origin, function(item) {
+    storage.get(action, origin, function(item) {
       if (!item) {
         cb(false);
       } else {
-        storage.remove(origin, function() {
+        storage.remove(action, origin, function() {
           cb(true);
         });
       }
     });
   }
 
-  function get(origin, cb) {
+  function get(action, origin, cb) {
     origin = normalizeOrigin(origin);
-    storage.get(origin, cb);
+    storage.get(action, origin, cb);
   }
   
   function iterate(cb) {

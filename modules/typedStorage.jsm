@@ -79,7 +79,7 @@ function ObjectStore(objType, dbName) {
 
   if (!tableExists) {
     try {
-      dbConn.executeSimpleSQL("CREATE TABLE " + objType + " (id INTEGER PRIMARY KEY, key TEXT UNIQUE NOT NULL, data TEXT)");
+      dbConn.executeSimpleSQL("CREATE TABLE " + objType + " (action TEXT NOT NULL, origin TEXT NOT NULL, manifest TEXT, PRIMARY KEY(action, origin))");
     } catch (e) {
       console.log("Error while creating table: " + e);
       throw e;
@@ -89,16 +89,17 @@ function ObjectStore(objType, dbName) {
   this._objType = objType;
 }
 ObjectStore.prototype = {
-  get: function(key, cb) {
+  get: function(action, origin, cb) {
     let self = this;
     let value;
-    let getStatement = this._dbConn.createStatement("SELECT data FROM " + this._objType + " WHERE key = :key LIMIT 1");
-    getStatement.params.key = key;
+    let getStatement = this._dbConn.createStatement("SELECT manifest FROM " + this._objType + " WHERE action = :action AND origin = :origin LIMIT 1");
+    getStatement.params.action = action;
+    getStatement.params.origin = origin;
     getStatement.executeAsync({
       handleResult: function(result) {
         let row = result.getNextRow();
         if (row) {
-          value = JSON.parse(row.getResultByName("data"));
+          value = JSON.parse(row.getResultByName("manifest"));
         }
       },
       handleError: function(error) {
@@ -119,23 +120,26 @@ ObjectStore.prototype = {
     });
   },
 
-  insert: function(key, value, cb) {
-    let setStatement = this._dbConn.createStatement("INSERT INTO " + this._objType + " (key, data) VALUES (:key, :data )");
-    setStatement.params.key = key;
-    setStatement.params.data = JSON.stringify(value);
+  insert: function(action, origin, manifest, cb) {
+    let setStatement = this._dbConn.createStatement("INSERT INTO " + this._objType + " (action, origin, manifest) VALUES (:action, :origin, :manifest)");
+    setStatement.params.action = action;
+    setStatement.params.origin = origin;
+    setStatement.params.manifest = JSON.stringify(manifest);
     this._doAsyncExecute(setStatement, cb);
   },
 
-  put: function(key, value, cb) {
-    let setStatement = this._dbConn.createStatement("INSERT OR REPLACE INTO " + this._objType + " (key, data) VALUES (:key, :data )");
-    setStatement.params.key = key;
-    setStatement.params.data = JSON.stringify(value);
+  put: function(action, origin, manifest, cb) {
+    let setStatement = this._dbConn.createStatement("INSERT OR REPLACE INTO " + this._objType + " (action, origin, manifest) VALUES (:action, :origin, :manifest)");
+    setStatement.params.action = action;
+    setStatement.params.origin = origin;
+    setStatement.params.manifest = JSON.stringify(manifest);
     this._doAsyncExecute(setStatement, cb);
   },
 
-  remove: function(key, cb) {
-    let removeStatement = this._dbConn.createStatement("DELETE FROM " + this._objType + " WHERE key = :key");
-    removeStatement.params.key = key;
+  remove: function(action, origin, cb) {
+    let removeStatement = this._dbConn.createStatement("DELETE FROM " + this._objType + " WHERE action = :action AND origin = :origin");
+    removeStatement.params.action = action;
+    removeStatement.params.origin = origin;
     this._doAsyncExecute(removeStatement, cb);
   },
 
@@ -152,14 +156,14 @@ ObjectStore.prototype = {
 
   keys: function(cb) {
     let resultKeys = [];
-    let keyStatement = this._dbConn.createStatement("SELECT key FROM " + this._objType);
+    let keyStatement = this._dbConn.createStatement("SELECT action, origin FROM " + this._objType);
 
     let self = this;
     keyStatement.executeAsync({
       handleResult: function(result) {
         let row;
         while ((row = result.getNextRow())) {
-          resultKeys.push(row.getResultByName("key"));
+          resultKeys.push([row.getResultByName("action"), row.getResultByName("origin")]);
         }
       },
       handleError: function(error) {
@@ -184,7 +188,7 @@ ObjectStore.prototype = {
     let store = this;
     this.keys(function(allKeys) {
       for (let i = 0; i < allKeys.length; i++) {
-        store.get(allKeys[i], function(values) {
+        store.get(allKeys[i][0], allKeys[i][1], function(values) {
           let result = cb(allKeys[i], values);
           if (result === false) return;
         });

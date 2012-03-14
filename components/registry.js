@@ -70,35 +70,17 @@ function activityRegistry() {
   Services.obs.addObserver(this, "openwebapp-uninstalled", true);
   Services.obs.addObserver(this, "document-element-inserted", true);
   
-  let toInstall = [];
+  // first-time install of builtin activities
   for each(let activity in builtinActivities) {
     let info = this._getUsefulness(activity.url, activity.login);
-    if (info.hasLogin || info.frecency >= FRECENCY) {
-      toInstall.push(activity);
-      //console.log("installing "+activity.url+ " because "+JSON.stringify(info));
-    }
-    //else
-    //  console.log("skip install of "+activity.url);
-  }
-  if (toInstall.length < 1) {
-    //console.log("no services to install, install everything");
-    // no frecency or logins, install everything
-    // BUG 732257 we will need to limit this to localized services
-    toInstall = builtinActivities;
-  }
-  for each(let activity in toInstall) {
-    //  initialize the db with our builtins
-    // TODO if a real provider implementation is added later, we don't want to
-    // overwrite that, however, if we're upgrading a builtin, we need to overwrite
-    ManifestDB.insert(activity.url, {activities: [activity]});
+    activity.enabled = info.hasLogin || info.frecency >= FRECENCY;
+    ManifestDB.insert(activity);
   }
   
   let self = this;
-  ManifestDB.iterate(function(key, manifest) {
+  ManifestDB.iterate(function(key, activity) {
     //console.log("got manifest from manifestDB "+key+": "+JSON.stringify(manifest));
-    for each(let activity in manifest.activities) {
-      self.registerActivityHandler(activity.action, activity.url, activity);
-    }
+    self._addActivity(activity);
   });
 }
 
@@ -112,14 +94,31 @@ activityRegistry.prototype = {
 
   _mediatorClasses: {}, // key is service name, value is a callable.
   _activitiesList: {},
+  _byOrigin: {},
   
   _getUsefulness: function activityRegistry_findMeABetterName(url, loginHost) {
     let hosturl = Services.io.newURI(url, null, null);
     loginHost = loginHost || hosturl.scheme+"://"+hosturl.host;
     return {
+      uri: hosturl,
       hasLogin: hasLogin(loginHost),
       frecency: frecencyForUrl(hosturl.host)
     }
+  },
+  
+  _addActivity: function(activity) {
+    if (!this._activitiesList[activity.action]) this._activitiesList[activity.action] = {};
+    if (!this._byOrigin[activity.origin]) this._byOrigin[activity.origin] = {};
+    let info = this._getUsefulness(activity.url, activity.login);
+    activity.frecency = info.frecency;
+    activity.enabled = activity.enabled!==undefined ? activity.enabled : info.hasLogin || info.frecency >= FRECENCY
+    this._activitiesList[activity.action][activity.origin] = activity;
+    this._byOrigin[activity.origin][activity.action] = activity;
+  },
+  
+  _removeActivity: function(action, origin) {
+    delete this._activitiesList[action][origin];
+    delete this._byOrigin[activity.origin][activity.action];
   },
 
   /**
@@ -131,28 +130,12 @@ activityRegistry.prototype = {
    * @param  string aURL              url of handler implementation
    * @param  jsval  aManifest         jsobject of the json manifest 
    */
-  registerActivityHandler: function activityRegistry_registerActivityHandler(aActivityName, aURL, aManifest) {
-    this.unregisterActivityHandler(aActivityName, aURL);
-    if (!this._activitiesList[aActivityName]) this._activitiesList[aActivityName] = {};
-    
-    // get the frecency for this service
-    let hosturl = Services.io.newURI(aURL, null, null);
-    let host = hosturl.host;
-    let frecency = frecencyForUrl(host);
-    let loginHost = aManifest.login || hosturl.scheme+"://"+hosturl.host;
-    // for now, hard code at least a frecency of 50 for the service
-    // to auto-enable
-    let enabled = true;//hasLogin(loginHost) || frecency > 50;
-    
+  registerActivityHandler: function activityRegistry_registerActivityHandler(aActivityName, aURL, aActivityData) {
     // store by origin.  our builtins get registered first, then we'll register
     // any installed activities, which can overwrite the builtins
-    this._activitiesList[aActivityName][hosturl.host] = {
-      url: aURL,
-      service: aActivityName,
-      app: aManifest,
-      frecency: frecency,
-      enabled: enabled
-    };
+    this._addActivity(aActivityData);
+    ManifestDB.put(aActivityData);
+    console.log("notify our observers");
     Services.obs.notifyObservers(null, 'activity-handler-registered', aActivityName);
   },
 
@@ -171,11 +154,9 @@ activityRegistry.prototype = {
     let origin = Services.io.newURI(aURL, null, null).hostname;
     if (!origin)
       return;
-    let activity = this._activitiesList[aActivityName][origin];
-    if (activity) {
-      delete this._activitiesList[aActivityName][origin];
-      Services.obs.notifyObservers(null, 'activity-handler-unregistered', aActivityName);
-    }
+    this._removeActivity(aActivityName, origin)
+    ManifestDB.remove(aActivityName, aURL, function() {});
+    Services.obs.notifyObservers(null, 'activity-handler-unregistered', aActivityName);
   },
 
   /**
@@ -258,15 +239,14 @@ activityRegistry.prototype = {
     
     let registry = this;
     function installManifest() {
-      ManifestDB.put(location, manifest, function() {
-        for each(let svc in manifest.activities) {
-          if (!svc.url || !svc.action)
-            continue;
-          //console.log("service: "+svc.url);
-          svc.url = Services.io.newURI(location, null, null).resolve(svc.url);
-          registry.registerActivityHandler(svc.action, svc.url, svc);
-        }
-      });
+      for each(let svc in manifest.activities) {
+        if (!svc.url || !svc.action)
+          continue;
+        svc.enabled = undefined; // ensure this is not set from the outside
+        //console.log("service: "+svc.url);
+        svc.url = Services.io.newURI(location, null, null).resolve(svc.url);
+        registry.registerActivityHandler(svc.action, svc.url, svc);
+      }
     }
     
     if (userRequestedInstall) {
@@ -333,14 +313,11 @@ activityRegistry.prototype = {
       if (link.getAttribute('rel') == 'manifest' &&
           link.getAttribute('type') == 'text/json') {
         //console.log("found manifest url "+link.getAttribute('href'));
-        let baseUrl = aDocument.defaultView.location.href;
-        let url = Services.io.newURI(baseUrl, null, null).resolve(link.getAttribute('href'));
-        //console.log("base "+baseUrl+" resolved to "+url);
-        ManifestDB.get(url, function(item) {
-          if (!item) {
-            this.loadManifest(aDocument, url);
-          }
-        });
+        let baseUrl = Services.io.newURI(aDocument.defaultView.location.href, null, null);
+        let url = baseUrl.resolve(link.getAttribute('href'));
+        if (!this._byOrigin[baseUrl.host]) {
+          this.loadManifest(aDocument, url);
+        }
       }
     }
   },
