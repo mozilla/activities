@@ -135,7 +135,6 @@ activityRegistry.prototype = {
     // any installed activities, which can overwrite the builtins
     this._addActivity(aActivityData);
     ManifestDB.put(aActivityData);
-    console.log("notify our observers");
     Services.obs.notifyObservers(null, 'activity-handler-registered', aActivityName);
   },
 
