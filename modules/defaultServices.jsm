@@ -63,9 +63,9 @@ var builtinActivities = [
     name: "Google+",
     login: "https://www.google.com",
     action: "share",
-    url: "https://plusone.google.com/_/+1/confirm",
-    urlTemplate: "https://plusone.google.com/_/+1/confirm?hl=en&url=%{data}",
-    icon: "https://plusone.google.com/favicon.ico"
+    url: "https://plus.google.com/share?url=about:blank",
+    urlTemplate: "https://plus.google.com/share?url=%{data}",
+    icon: "https://plus.google.com/favicon.ico"
   },
   {
     name: "GMail",
