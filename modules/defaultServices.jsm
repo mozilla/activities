@@ -6,7 +6,8 @@ const EXPORTED_SYMBOLS = ["hasLogin", "builtinActivities", "frecencyForUrl"];
 
 function hasLogin(hostname) {
   try {
-    var loginManager = Cc["@mozilla.org/login-manager;1"].getService(Ci.nsILoginManager);
+    var loginManager = Cc["@mozilla.org/login-manager;1"]
+                          .getService(Ci.nsILoginManager);
     return loginManager.countLogins(hostname, "", "") > 0; 
   } catch(e) {
     Cu.reportError(e);
@@ -28,7 +29,7 @@ function frecencyForUrl(host)
     "SELECT frecency FROM moz_places WHERE rev_host = ?1"
   );
   try {
-    stmt.bindByIndex(0, reverse(host)+'.');
+    stmt.bindByIndex(0, reverse(host) + '.');
     if (stmt.executeStep())
       frecency = stmt.getInt32(0);
   } finally {

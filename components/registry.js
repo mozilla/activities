@@ -39,7 +39,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const {classes: Cc, interfaces: Ci, utils: Cu, resources: Cr, manager: Cm} = Components;
+const {classes: Cc, interfaces: Ci, utils: Cu,
+       resources: Cr, manager: Cm} = Components;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
@@ -53,7 +54,7 @@ const FRECENCY = 100;
 // temporary
 let console = {
   log: function(s) {
-    dump(s+"\n");
+    dump(s + "\n");
   }
 }
 
@@ -79,7 +80,7 @@ function activityRegistry() {
   
   let self = this;
   ManifestDB.iterate(function(key, activity) {
-    //console.log("got manifest from manifestDB "+key+": "+JSON.stringify(manifest));
+    //console.log("got manifest from manifestDB " + key + ": " + JSON.stringify(manifest));
     self._addActivity(activity);
   });
 }
@@ -90,15 +91,17 @@ const activityRegistryCID = "@mozilla.org/activitiesRegistry;1";
 activityRegistry.prototype = {
   classID: activityRegistryClassID,
   contractID: activityRegistryCID,
-  QueryInterface: XPCOMUtils.generateQI([Ci.mozIActivitiesRegistry, Ci.nsISupportsWeakReference, Ci.nsIObserver]),
+  QueryInterface: XPCOMUtils.generateQI([Ci.mozIActivitiesRegistry,
+                                         Ci.nsISupportsWeakReference,
+                                         Ci.nsIObserver]),
 
   _mediatorClasses: {}, // key is service name, value is a callable.
   _activitiesList: {},
   _byOrigin: {},
   
-  _getUsefulness: function activityRegistry_findMeABetterName(url, loginHost) {
+  _getUsefulness: function ar_findMeABetterName(url, loginHost) {
     let hosturl = Services.io.newURI(url, null, null);
-    loginHost = loginHost || hosturl.scheme+"://"+hosturl.host;
+    loginHost = loginHost || hosturl.scheme + "://" + hosturl.host;
     return {
       uri: hosturl,
       hasLogin: hasLogin(loginHost),
@@ -107,11 +110,16 @@ activityRegistry.prototype = {
   },
   
   _addActivity: function(activity) {
-    if (!this._activitiesList[activity.action]) this._activitiesList[activity.action] = {};
-    if (!this._byOrigin[activity.origin]) this._byOrigin[activity.origin] = {};
+    if (!this._activitiesList[activity.action])
+      this._activitiesList[activity.action] = {};
+    if (!this._byOrigin[activity.origin])
+      this._byOrigin[activity.origin] = {};
+
     let info = this._getUsefulness(activity.url, activity.login);
     activity.frecency = info.frecency;
-    activity.enabled = activity.enabled!==undefined ? activity.enabled : info.hasLogin || info.frecency >= FRECENCY
+    activity.enabled = activity.enabled!==undefined ?
+                              activity.enabled :
+                              info.hasLogin || info.frecency >= FRECENCY;
     this._activitiesList[activity.action][activity.origin] = activity;
     this._byOrigin[activity.origin][activity.action] = activity;
   },
@@ -130,7 +138,7 @@ activityRegistry.prototype = {
    * @param  string aURL              url of handler implementation
    * @param  jsval  aManifest         jsobject of the json manifest 
    */
-  registerActivityHandler: function activityRegistry_registerActivityHandler(aActivityName, aURL, aActivityData) {
+  registerActivityHandler: function ar_registerActivityHandler(aActivityName, aURL, aActivityData) {
     // store by origin.  our builtins get registered first, then we'll register
     // any installed activities, which can overwrite the builtins
     this._addActivity(aActivityData);
@@ -146,7 +154,7 @@ activityRegistry.prototype = {
    * @param  string aActivityName     URI or name of activity
    * @param  string aURL              url of handler implementation
    */
-  unregisterActivityHandler: function activityRegistry_unregisterActivityHandler(aActivityName, aURL) {
+  unregisterActivityHandler: function ar_unregisterActivityHandler(aActivityName, aURL) {
     let activities = this._activitiesList[aActivityName];
     if (!activities)
       return;
@@ -155,7 +163,8 @@ activityRegistry.prototype = {
       return;
     this._removeActivity(aActivityName, origin)
     ManifestDB.remove(aActivityName, aURL, function() {});
-    Services.obs.notifyObservers(null, 'activity-handler-unregistered', aActivityName);
+    Services.obs.notifyObservers(null, 'activity-handler-unregistered',
+                                 aActivityName);
   },
 
   /**
@@ -167,7 +176,7 @@ activityRegistry.prototype = {
    * @param  function aCallback       error callback
    * @result array of jsobj           list of manifests for this activity
    */
-  getActivityHandlers: function activityRegistry_getActivityHandlers(aActivityName, aCallback) {
+  getActivityHandlers: function ar_getActivityHandlers(aActivityName, aCallback) {
     let activities = [];
     if (this._activitiesList[aActivityName]) {
       for (var origin in this._activitiesList[aActivityName]) {
@@ -196,9 +205,9 @@ activityRegistry.prototype = {
    * @param string  aActivityName    URI or name of activity
    * @param jsclass aClass           implementation of MediatorPanel
    */
-  registerMediator: function activityRegistry_registerMediator(aActivityName, aClass) {
+  registerMediator: function ar_registerMediator(aActivityName, aClass) {
     if (this._mediatorClasses[aActivityName]) {
-      throw new Exception("Mediator already registered for "+aActivityName);
+      throw new Exception("Mediator already registered for " + aActivityName);
     }
     this._mediatorClasses[aActivityName] = aClass;
   },
@@ -228,9 +237,10 @@ activityRegistry.prototype = {
     }
   },
   
-  importManifest: function activityRegistry_importManifest(aDocument, location, manifest, userRequestedInstall) {
+  importManifest: function ar_importManifest(aDocument, location, manifest,
+                                             userRequestedInstall) {
     // BUG 732259 we need a persistent storage container for manifest data
-    //console.log("got manifest "+JSON.stringify(manifest));
+    //console.log("got manifest " + JSON.stringify(manifest));
     if (!manifest.activities) {
       console.log("invalid activities manifest");
       return;
@@ -242,7 +252,7 @@ activityRegistry.prototype = {
         if (!svc.url || !svc.action)
           continue;
         svc.enabled = undefined; // ensure this is not set from the outside
-        //console.log("service: "+svc.url);
+        //console.log("service: " + svc.url);
         svc.url = Services.io.newURI(location, null, null).resolve(svc.url);
         registry.registerActivityHandler(svc.action, svc.url, svc);
       }
@@ -259,43 +269,49 @@ activityRegistry.prototype = {
       }
       // we reached here because the user has a login or visits this site
       // often, so we want to offer an install to the user
-      //console.log("installing "+location+ " because "+JSON.stringify(info));
+      //console.log("installing " + location + " because " + JSON.stringify(info));
       // prompt user for install
-      var xulWindow = aDocument.defaultView.QueryInterface(Ci.nsIInterfaceRequestor)
-                     .getInterface(Ci.nsIWebNavigation)
-                     .QueryInterface(Ci.nsIDocShellTreeItem)
-                     .rootTreeItem
-                     .QueryInterface(Ci.nsIInterfaceRequestor)
-                     .getInterface(Ci.nsIDOMWindow); 
+      var xulWindow = aDocument.defaultView
+                               .QueryInterface(Ci.nsIInterfaceRequestor)
+                               .getInterface(Ci.nsIWebNavigation)
+                               .QueryInterface(Ci.nsIDocShellTreeItem)
+                               .rootTreeItem
+                               .QueryInterface(Ci.nsIInterfaceRequestor)
+                               .getInterface(Ci.nsIDOMWindow); 
       this.askUserInstall(xulWindow, installManifest)
       return;
     }
   },
   
-  loadManifest: function activityRegistry_loadManifest(aDocument, url, userRequestedInstall) {
+  loadManifest: function ar_loadManifest(aDocument, url,
+                                                       userRequestedInstall) {
     // BUG 732264 error and edge case handling
-    let xhr = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance(Ci.nsIXMLHttpRequest);  
+    let xhr = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
+                .createInstance(Ci.nsIXMLHttpRequest);  
     xhr.open('GET', url, true);
     let registry = this;
     xhr.onreadystatechange = function(aEvt) {
       if (xhr.readyState == 4) {
         if (xhr.status == 200 || xhr.status == 0) {
-          //console.log("got response "+xhr.responseText);
+          //console.log("got response " + xhr.responseText);
           try {
-            registry.importManifest(aDocument, url, JSON.parse(xhr.responseText), userRequestedInstall);
+            registry.importManifest(aDocument, url,
+                                    JSON.parse(xhr.responseText),
+                                    userRequestedInstall);
           } catch(e) {
-            console.log("importManifest: "+e);
+            console.log("importManifest: " + e);
           }
-        } else {
-          console.log("got status "+xhr.status);
+        }
+        else {
+          console.log("got status " + xhr.status);
         }
       }
     };
-    //console.log("fetch "+url);
+    //console.log("fetch " + url);
     xhr.send(null);
   },
   
-  discoverActivity: function activityRegistry_discoverActivity(aDocument, aData) {
+  discoverActivity: function ar_discoverActivity(aDocument, aData) {
     // BUG 732266 this is probably heavy weight, is there a better way to watch for
     // links in documents?
     
@@ -311,8 +327,9 @@ activityRegistry.prototype = {
       let link = links[index];
       if (link.getAttribute('rel') == 'manifest' &&
           link.getAttribute('type') == 'text/json') {
-        //console.log("found manifest url "+link.getAttribute('href'));
-        let baseUrl = Services.io.newURI(aDocument.defaultView.location.href, null, null);
+        //console.log("found manifest url " + link.getAttribute('href'));
+        let baseUrl = Services.io.newURI(aDocument.defaultView.location.href,
+                                         null, null);
         let url = baseUrl.resolve(link.getAttribute('href'));
         if (!this._byOrigin[baseUrl.host]) {
           this.loadManifest(aDocument, url);
@@ -326,11 +343,11 @@ activityRegistry.prototype = {
    *
    * reset our mediators if an app is installed or uninstalled
    */
-  observe: function activityRegistry_observe(aSubject, aTopic, aData) {
+  observe: function ar_observe(aSubject, aTopic, aData) {
     if (aTopic == "document-element-inserted") {
       if (!aSubject.defaultView)
         return;
-      //console.log("new document "+aSubject.defaultView.location);
+      //console.log("new document " + aSubject.defaultView.location);
       this.discoverActivity(aSubject, aData);
       return;
     }
@@ -341,8 +358,8 @@ activityRegistry.prototype = {
       let panels = window.document.getElementsByClassName('activities-panel');
       if (aTopic === "activity-handler-registered" ||
           aTopic === "activity-handler-unregistered") {
-        // BUG 732271 look at the change in the app and only reconfigure the related
-        // mediators.
+        // BUG 732271 look at the change in the app and only reconfigure the
+        // related mediators.
         for each (let panel in panels) {
           if (panel.mediator.action == aData)
             panel.mediator.reconfigure();
@@ -350,8 +367,8 @@ activityRegistry.prototype = {
       }
       else if (aTopic === "openwebapp-installed" ||
                aTopic === "openwebapp-uninstalled") {
-        // BUG 732271 look at the change in the app and only reconfigure the related
-        // mediators.
+        // BUG 732271 look at the change in the app and only reconfigure the
+        // related mediators.
         for each (let panel in panels) {
           if (panel.mediator.action == aData)
             panel.mediator.reconfigure();
@@ -369,7 +386,7 @@ activityRegistry.prototype = {
    * @param  jsobject activity
    * @return MediatorPanel instance
    */
-  get: function activityRegistry_get(aWindow, aActivity) {
+  get: function ar_get(aWindow, aActivity) {
     let panels = aWindow.document.getElementsByClassName('activities-panel');
     if (panels.length > 0) {
       for each (let panel in panels) {
@@ -393,14 +410,14 @@ activityRegistry.prototype = {
    * @param  function success callback
    * @param  function error callback
    */
-  invoke: function activityRegistry_invoke(aWindow, aActivity, aSuccessCallback, aErrorCallback) {
+  invoke: function ar_invoke(aWindow, aActivity, aSuccessCallback, aErrorCallback) {
     try {
       // Do we already have a panel for this service for this content window?
       let mediator = this.get(aWindow, aActivity);
       mediator.startActivity(aActivity, aSuccessCallback, aErrorCallback);
       mediator.show();
     } catch (e) {
-      console.log("invoke: "+e);
+      console.log("invoke: " + e);
     }
   }
 };

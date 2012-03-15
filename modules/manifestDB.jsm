@@ -62,7 +62,7 @@ var ManifestDB = (function() {
       if (uri.scheme == 'resource' || uri.scheme == 'file') return aURL;
       return uri.host;
     } catch(e) {
-      dump(e+"\n");
+      dump(e + "\n");
     }
     return aURL;
   }
@@ -96,7 +96,8 @@ var ManifestDB = (function() {
     storage.get(action, origin, function(item) {
       if (!item) {
         cb(false);
-      } else {
+      }
+      else {
         storage.remove(action, origin, function() {
           cb(true);
         });

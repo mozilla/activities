@@ -55,7 +55,7 @@ const PREFS_ICON = "chrome://browser/skin/tabbrowser/newtab.png";
 // temporary
 let console = {
   log: function(s) {
-    dump(s+"\n");
+    dump(s + "\n");
   }
 }
 
@@ -93,7 +93,8 @@ MediatorPanel.prototype = {
   },
   
   get tabbrowser() {
-    return this._panel.ownerDocument.getElementById('activities-tabbrowser-'+this._panelId);
+    return this._panel.ownerDocument.getElementById('activities-tabbrowser-' +
+                                                    this._panelId);
   },
   
   get window() {
@@ -119,7 +120,7 @@ MediatorPanel.prototype = {
   },
 
   observe: function(document, aTopic, aData) {
-    let tb = this.window.document.getElementById('activities-tabbrowser-'+this._panelId);
+    let tb = this.window.document.getElementById('activities-tabbrowser-' + this._panelId);
     if (!tb || aTopic != 'document-element-inserted' ||
         !tb.getBrowserForDocument(document)) return;
     let i = tb.getBrowserIndexForDocument(document);
@@ -127,7 +128,9 @@ MediatorPanel.prototype = {
     if (document.location == PREFS_URL) {
       this.hookupPrefs(document);
       tb.setIcon(tab, PREFS_ICON);
-      document.defaultView.addEventListener("message", this.onPrefsMessage.bind(this), true);
+      document.defaultView.addEventListener("message",
+                                            this.onPrefsMessage.bind(this),
+                                            true);
       return;
     }
     if (!tab.service) {
@@ -135,7 +138,9 @@ MediatorPanel.prototype = {
     }
     document.defaultView.addEventListener('load', function(e) {
       document.defaultView.removeEventListener('load', arguments.callee, false);
-      document.defaultView.addEventListener("message", this.onMessage.bind(this), true);
+      document.defaultView.addEventListener("message",
+                                            this.onMessage.bind(this),
+                                            true);
     }.bind(this), true);
   },
   
@@ -147,14 +152,14 @@ MediatorPanel.prototype = {
       serviceList.sort(function(a,b) a.frecency-b.frecency).reverse();
       try {
         var win = document.defaultView;
-        //console.log("postMessage to "+win.location.protocol + "//" + win.location.host);
+        //console.log("postMessage to " + win.location.protocol + "//" + win.location.host);
         let data = JSON.stringify({
           topic: "handlers",
           data: serviceList
         });
         win.postMessage(data, "*");
       } catch(e) {
-        console.log("postMessage: "+e)
+        console.log("postMessage: " + e)
       }
     }
     activityRegistry.getActivityHandlers(this.action, cb);
@@ -180,7 +185,7 @@ MediatorPanel.prototype = {
   },
   
   onMessage: function(event) {
-    //console.log("listener received "+event.data + " from "+ event.origin);
+    //console.log("listener received " + event.data + " from "+ event.origin);
     // get the tab for the document on the event
     let msg = JSON.parse(event.data);
     if (msg.topic != 'activity' || !msg.data)
@@ -205,7 +210,7 @@ MediatorPanel.prototype = {
    * what the panel gets attached to
    * */
   get anchor() {
-    return this.window.document.getElementById(this.action+'-activity-button') ||
+    return this.window.document.getElementById(this.action + '-activity-button') ||
            this.window.document.getElementById('identity-box');
   },
 
@@ -243,7 +248,7 @@ MediatorPanel.prototype = {
   _processTemplate: function(tmpl, activity) {
     let url = tmpl.replace("%{data}", activity.data);
     for (var d in activity.extras) {
-      let repl = "%{"+d+"}";
+      let repl = "%{" + d + "}";
       url = url.replace(repl, encodeURIComponent(activity.extras[d]));
     }
     return url;
@@ -251,7 +256,8 @@ MediatorPanel.prototype = {
 
   onPanelShown: function() {
     // nothing to do here yet, but sub-classes might want to override this.
-    let tb = this.window.document.getElementById('activities-tabbrowser-'+this._panelId);
+    let tb = this.window.document.getElementById('activities-tabbrowser-' +
+                                                 this._panelId);
     let tab = tb.selectedTab;
     if (!tab.service)
       return;
@@ -260,10 +266,12 @@ MediatorPanel.prototype = {
       // our builtins are most likely urlTemplate based share pages, we'll keep
       // it simple and use those for now, with the "upgrade" path being a full
       // activities implementation.
-      let url = this._processTemplate(tab.service.urlTemplate, this.tabData.activity);
+      let url = this._processTemplate(tab.service.urlTemplate,
+                                      this.tabData.activity);
       if (url != tb.contentWindow.location.href)
         tb.contentWindow.location = url;
-    } else {
+    }
+    else {
       try {
         var win = tb.contentWindow;
         let location = win.location.protocol=='file:' ? "*" :
@@ -272,10 +280,10 @@ MediatorPanel.prototype = {
           topic: "activity",
           activity: this.tabData.activity
         });
-        //console.log("   data is "+data);
+        //console.log("   data is " + data);
         win.postMessage(data, location);
       } catch(e) {
-        console.log("postMessage: "+e)
+        console.log("postMessage: " + e)
       }
     }
   },
@@ -292,7 +300,7 @@ MediatorPanel.prototype = {
     // xbl widget, but not really necessary
     let document = aWindow.document;
     let panel = this._panel = document.createElementNS(NS_XUL, 'panel');
-    panel.setAttribute('id', 'activities-panel-'+this._panelId);
+    panel.setAttribute('id', 'activities-panel-' + this._panelId);
     panel.setAttribute('class', 'activities-panel');
     //panel.setAttribute("noautohide", "true");
     panel.setAttribute("type", "arrow");
@@ -300,8 +308,8 @@ MediatorPanel.prototype = {
     let box = document.createElementNS(NS_XUL, 'hbox');
   
     let tabs = document.createElementNS(NS_XUL, 'tabs');
-    tabs.setAttribute('id', 'activities-tabs-'+this._panelId);
-    tabs.setAttribute('tabbrowser', 'activities-tabbrowser-'+this._panelId);
+    tabs.setAttribute('id', 'activities-tabs-' + this._panelId);
+    tabs.setAttribute('tabbrowser', 'activities-tabbrowser-' + this._panelId);
     tabs.setAttribute('closebuttons', 'hidden');
     tabs.setAttribute('tabsontop', 'false');
     tabs.setAttribute('class', 'tabbrowser-tabs activities-tabs');
@@ -317,11 +325,11 @@ MediatorPanel.prototype = {
     // tabbrowser implementation.  tabbrowser expects it is the only
     // tabbrowser in a xul window, we get all kinds of sideaffects here.
     let tb = document.createElementNS(NS_XUL, 'tabbrowser');
-    tb.setAttribute('id', 'activities-tabbrowser-'+this._panelId);
+    tb.setAttribute('id', 'activities-tabbrowser-' + this._panelId);
     tb.setAttribute('type', 'content');
     tb.setAttribute('class', 'activities-tabbrowser');
     tb.setAttribute('flex', '1');
-    tb.setAttribute('tabcontainer', 'activities-tabs-'+this._panelId);
+    tb.setAttribute('tabcontainer', 'activities-tabs-' + this._panelId);
     box.appendChild(tabs);
     box.appendChild(tb);
     panel.appendChild(box);
@@ -347,7 +355,8 @@ MediatorPanel.prototype = {
     tb.removeTab(empty);
     this.panel.addEventListener('popupshown', this.onPanelShown.bind(this));
     this.panel.addEventListener('popuphidden', this.onPanelHidden.bind(this));
-    this.panel.addEventListener('TabSelect', this.onPanelShown.bind(this)); // use onPanelShown to resend activity
+    // use onPanelShown to resend activity
+    this.panel.addEventListener('TabSelect', this.onPanelShown.bind(this)); 
   },
   
   _tabForService: function(svc) {
@@ -456,10 +465,12 @@ MediatorPanel.prototype = {
   reconfigure: function() {
     try {
       this._updatePanelServices();
-      let document = this.tabbrowser.browsers[this.tabbrowser.browsers.length-1].contentDocument;
+      let document = this.tabbrowser
+                         .browsers[this.tabbrowser.browsers.length-1]
+                         .contentDocument;
       this.hookupPrefs(document);
     } catch(e) {
-      console.log("reconfigure: "+e);
+      console.log("reconfigure: " + e);
     }
   }
 }
