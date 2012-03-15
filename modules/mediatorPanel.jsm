@@ -132,7 +132,7 @@ MediatorPanel.prototype = {
         win.postMessage(data, "*");
       }
       catch(e) {
-        console.log("postMessage: " + e)
+        Cu.reportError(e);
       }
     }
     activityRegistry.getActivityHandlers(this.action, cb);
@@ -176,7 +176,7 @@ MediatorPanel.prototype = {
       }
     }
     catch(e) {
-      console.log(e);
+      Cu.reportError(e);
     }
   },
 
@@ -258,7 +258,7 @@ MediatorPanel.prototype = {
         win.postMessage(data, location);
       }
       catch(e) {
-        console.log("postMessage: " + e)
+        Cu.reportError(e);
       }
     }
   },
@@ -446,7 +446,7 @@ MediatorPanel.prototype = {
       this.hookupPrefs(document);
     }
     catch(e) {
-      console.log("reconfigure: " + e);
+      Cu.reportError(e);
     }
   }
 }

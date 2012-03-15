@@ -273,7 +273,7 @@ activityRegistry.prototype = {
                                     userRequestedInstall);
           }
           catch(e) {
-            console.log("importManifest: " + e);
+            Cu.reportError(e);
           }
         }
         else {
@@ -392,7 +392,7 @@ activityRegistry.prototype = {
       mediator.show();
     }
     catch (e) {
-      console.log("invoke: " + e);
+      Cu.reportError(e);
     }
   }
 };

@@ -38,7 +38,7 @@ var ManifestDB = (function() {
       return uri.host;
     }
     catch(e) {
-      dump(e + "\n");
+      Cu.reportError(e);
     }
     return aURL;
   }
