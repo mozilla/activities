@@ -13,6 +13,7 @@
 
 const {classes: Cc, interfaces: Ci, utils: Cu, resources: Cr} = Components;
 
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
 
 const NS_XUL = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
@@ -23,6 +24,9 @@ const EXPORTED_SYMBOLS = ["MediatorPanel"];
 const PREFS_URL = "chrome://activities/content/preferences.html";
 // TODO BUG 735885 get a proper icon
 const PREFS_ICON = "chrome://browser/skin/tabbrowser/newtab.png";
+
+XPCOMUtils.defineLazyServiceGetter(this, "activityRegistry",
+  "@mozilla.org/activitiesRegistry;1", "mozIActivitiesRegistry");
 
 // temporary
 let console = {
@@ -117,8 +121,6 @@ MediatorPanel.prototype = {
   },
   
   hookupPrefs: function(document) {
-    let activityRegistry = Cc["@mozilla.org/activitiesRegistry;1"]
-                            .getService(Ci.mozIActivitiesRegistry);
     function cb(serviceList) {
       // present an ordered selection based on frecency
       serviceList.sort(function(a,b) a.frecency-b.frecency).reverse();
@@ -143,8 +145,6 @@ MediatorPanel.prototype = {
     if (msg.topic !== "preference-change")
       return;
     let data = msg.data;
-    let activityRegistry = Cc["@mozilla.org/activitiesRegistry;1"]
-                            .getService(Ci.mozIActivitiesRegistry);
     function cb(serviceList) {
       serviceList.forEach(function(svc) {
         if (svc.url == data.url) {
@@ -341,11 +341,9 @@ MediatorPanel.prototype = {
     }
     return null;
   },
-  
+
   _updatePanelServices: function() {
     let tb = this.tabbrowser;
-    let activityRegistry = Cc["@mozilla.org/activitiesRegistry;1"]
-                            .getService(Ci.mozIActivitiesRegistry);
     let self = this;
     function cb(serviceList) {
       // get the last tab
