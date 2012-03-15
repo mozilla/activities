@@ -27,15 +27,19 @@
             title: gBrowser.contentDocument.title,
           }
         });
-      }
+      };
 
-      // panels are not closing on TabOpen
-      gBrowser.tabContainer.addEventListener("TabOpen", function(e) {
-        var panels = document.getElementsByClassName('activities-panel');
-        for each (let panel in panels) {
-          if (panel.state == "open") panel.hidePopup();
+      (function() {
+        function hideActivityPanel(e) {
+          var panels = document.getElementsByClassName('activities-panel');
+          for each (let panel in panels) {
+            if (panel.state == "open") panel.hidePopup();
+          }
         }
-      });
+        // panels are not closing on TabOpen/TabSelect
+        gBrowser.tabContainer.addEventListener("TabOpen", hideActivityPanel);
+        gBrowser.tabContainer.addEventListener("TabSelect", hideActivityPanel);
+      })();
     }
   ]]>
   </script>
