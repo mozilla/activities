@@ -186,7 +186,7 @@ activityRegistry.prototype = {
   },
   
   askUserInstall: function(aWindow, aCallback) {
-    // BUG 732263 remember if the user says no, use that as a check in
+    // TODO: BUG 732263 remember if the user says no, use that as a check in
     // discoverActivity so we bypass a lot of work.
     let nId = "activities-ask-install";
     let nBox = aWindow.gBrowser.getNotificationBox();
@@ -212,7 +212,7 @@ activityRegistry.prototype = {
   
   importManifest: function ar_importManifest(aDocument, location, manifest,
                                              userRequestedInstall) {
-    // BUG 732259 we need a persistent storage container for manifest data
+    // TODO: BUG 732259 we need a persistent storage container for manifest data
     //console.log("got manifest " + JSON.stringify(manifest));
     if (!manifest.activities) {
       console.log("invalid activities manifest");
@@ -258,7 +258,7 @@ activityRegistry.prototype = {
   
   loadManifest: function ar_loadManifest(aDocument, url,
                                                        userRequestedInstall) {
-    // BUG 732264 error and edge case handling
+    // TODO: BUG 732264 error and edge case handling
     let xhr = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
                 .createInstance(Ci.nsIXMLHttpRequest);  
     xhr.open('GET', url, true);
@@ -286,7 +286,7 @@ activityRegistry.prototype = {
   },
   
   discoverActivity: function ar_discoverActivity(aDocument, aData) {
-    // BUG 732266 this is probably heavy weight, is there a better way to watch for
+    // TODO: BUG 732266 this is probably heavy weight, is there a better way to watch for
     // links in documents?
     
     // TODO determine whether or not we actually want to load this
@@ -332,7 +332,7 @@ activityRegistry.prototype = {
       let panels = window.document.getElementsByClassName('activities-panel');
       if (aTopic === "activity-handler-registered" ||
           aTopic === "activity-handler-unregistered") {
-        // BUG 732271 look at the change in the app and only reconfigure the
+        // TODO: BUG 732271 look at the change in the app and only reconfigure the
         // related mediators.
         for each (let panel in panels) {
           if (panel.mediator.action == aData)
@@ -341,7 +341,7 @@ activityRegistry.prototype = {
       }
       else if (aTopic === "openwebapp-installed" ||
                aTopic === "openwebapp-uninstalled") {
-        // BUG 732271 look at the change in the app and only reconfigure the
+        // TODO: BUG 732271 look at the change in the app and only reconfigure the
         // related mediators.
         for each (let panel in panels) {
           if (panel.mediator.action == aData)

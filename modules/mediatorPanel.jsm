@@ -163,7 +163,7 @@ MediatorPanel.prototype = {
     let msg = JSON.parse(event.data);
     if (msg.topic != 'activity' || !msg.data)
       return;
-    // BUG 731797 find the tab for the activity, this is currently assuming the
+    // TODO: BUG 731797 find the tab for the activity, this is currently assuming the
     // panel is still visible so we're getting a postmessage back for the
     // currentTab, but there is potential that the user has switched tabs in the
     // meantime, or that a bad actor is haunting us.
@@ -296,7 +296,7 @@ MediatorPanel.prototype = {
     tab.setAttribute('fadein', 'true');
     tabs.appendChild(tab);
   
-    // BUG 731797 will need to replace tabbrowser use with some custom
+    // TODO: BUG 731797 will need to replace tabbrowser use with some custom
     // tabbrowser implementation.  tabbrowser expects it is the only
     // tabbrowser in a xul window, we get all kinds of sideaffects here.
     let tb = document.createElementNS(NS_XUL, 'tabbrowser');
@@ -395,7 +395,7 @@ MediatorPanel.prototype = {
     // Check that we aren't already displaying our notification
     if (!notification) {
       let message;
-      // BUG 732274 need to strip message to text only
+      // TODO: BUG 732274 need to strip message to text only
       if (data && data.message)
         message = data.message;
       else

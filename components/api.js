@@ -50,8 +50,8 @@ MozActivitiesAPI.prototype = {
                    .getInterface(Ci.nsIDOMWindow); 
     return {
       startActivity: function(activity, successCB, errorCB) {
-        // BUG 731833 this should have the same protection as window.open, only
-        // allowed on a user initiated event.
+        // TODO BUG 731833 this should have the same protection as window.open,
+        // only allowed on a user initiated event.
         let activityRegistry = Cc["@mozilla.org/activitiesRegistry;1"]
                                 .getService(Ci.mozIActivitiesRegistry);
         return activityRegistry.invoke(xulWindow, activity, successCB, errorCB);

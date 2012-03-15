@@ -30,7 +30,7 @@ function reverse(s){
 
 function frecencyForUrl(host)
 {
-  // BUG 732275 there has got to be a better way to do this!
+  // TODO: BUG 732275 there has got to be a better way to do this!
   let dbconn = PlacesUtils.history.QueryInterface(Ci.nsPIPlacesDatabase)
                                   .DBConnection;
   let frecency = 0;
