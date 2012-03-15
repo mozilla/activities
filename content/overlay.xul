@@ -30,6 +30,8 @@
       };
 
       (function() {
+        // autohide panels do not always hide when we want them to, make sure
+        // we hide on new tab creation or tab select.
         function hideActivityPanel(e) {
           var panels = document.getElementsByClassName('activities-panel');
           for each (let panel in panels) {
