@@ -46,14 +46,17 @@ function ObjectStore(objType, dbName) {
     statement = dbConn.createStatement("SELECT * FROM " + objType + " LIMIT 1");
     statement.executeStep();
     tableExists = true;
-  } catch (e) {} finally {
+  }
+  catch (e) {}
+  finally {
     if (statement) statement.finalize();
   }
 
   if (!tableExists) {
     try {
       dbConn.executeSimpleSQL("CREATE TABLE " + objType + " (action TEXT NOT NULL, origin TEXT NOT NULL, manifest TEXT, PRIMARY KEY(action, origin))");
-    } catch (e) {
+    }
+    catch (e) {
       console.log("Error while creating table: " + e);
       throw e;
     }
@@ -84,7 +87,8 @@ ObjectStore.prototype = {
         else {
           try {
             cb(value);
-          } catch (e) {
+          }
+          catch (e) {
             console.log("Error in completion callback for ObjectStore.get(): " + e);
             console.log(e.stack);
           }
@@ -148,7 +152,8 @@ ObjectStore.prototype = {
         else {
           try {
             cb(resultKeys);
-          } catch (e) {
+          }
+          catch (e) {
             console.log("Error in completion callback for ObjectStore.keys(): " + e);
           }
         }
@@ -183,7 +188,8 @@ ObjectStore.prototype = {
         else {
           try {
             if (cb) cb(true);
-          } catch (e) {
+          }
+          catch (e) {
             console.log("Error while invoking callback for " + statement + ": " + e);
             console.log(e.stack);
           }

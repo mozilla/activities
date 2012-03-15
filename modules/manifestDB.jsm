@@ -36,7 +36,8 @@ var ManifestDB = (function() {
       let uri = Services.io.newURI(aURL, null, null);
       if (uri.scheme == 'resource' || uri.scheme == 'file') return aURL;
       return uri.host;
-    } catch(e) {
+    }
+    catch(e) {
       dump(e + "\n");
     }
     return aURL;

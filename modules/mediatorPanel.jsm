@@ -130,7 +130,8 @@ MediatorPanel.prototype = {
           data: serviceList
         });
         win.postMessage(data, "*");
-      } catch(e) {
+      }
+      catch(e) {
         console.log("postMessage: " + e)
       }
     }
@@ -173,7 +174,8 @@ MediatorPanel.prototype = {
       else {
         this.onActivityFailure(msg);
       }
-    } catch(e) {
+    }
+    catch(e) {
       console.log(e);
     }
   },
@@ -254,7 +256,8 @@ MediatorPanel.prototype = {
         });
         //console.log("   data is " + data);
         win.postMessage(data, location);
-      } catch(e) {
+      }
+      catch(e) {
         console.log("postMessage: " + e)
       }
     }
@@ -441,7 +444,8 @@ MediatorPanel.prototype = {
                          .browsers[this.tabbrowser.browsers.length-1]
                          .contentDocument;
       this.hookupPrefs(document);
-    } catch(e) {
+    }
+    catch(e) {
       console.log("reconfigure: " + e);
     }
   }

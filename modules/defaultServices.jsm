@@ -17,7 +17,8 @@ function hasLogin(hostname) {
     var loginManager = Cc["@mozilla.org/login-manager;1"]
                           .getService(Ci.nsILoginManager);
     return loginManager.countLogins(hostname, "", "") > 0; 
-  } catch(e) {
+  }
+  catch(e) {
     Cu.reportError(e);
   }
   return false;

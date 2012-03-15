@@ -164,7 +164,8 @@ activityRegistry.prototype = {
       //  activities = activities.concat(serviceList);
       //  cb(activities);
       //});
-    } catch (e) { }
+    }
+    catch (e) { }
     aCallback.handle(activities);
   },
 
@@ -270,7 +271,8 @@ activityRegistry.prototype = {
             registry.importManifest(aDocument, url,
                                     JSON.parse(xhr.responseText),
                                     userRequestedInstall);
-          } catch(e) {
+          }
+          catch(e) {
             console.log("importManifest: " + e);
           }
         }
@@ -388,7 +390,8 @@ activityRegistry.prototype = {
       let mediator = this.get(aWindow, aActivity);
       mediator.startActivity(aActivity, aSuccessCallback, aErrorCallback);
       mediator.show();
-    } catch (e) {
+    }
+    catch (e) {
       console.log("invoke: " + e);
     }
   }
