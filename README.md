@@ -15,8 +15,8 @@ To pull and run activities addon:
   
     git clone https://github.com/mozilla/activities
     cd activities
-    make pull
-    make run
+    echo /path/to/activities > /path/to/fx/Profiles/x.test/extensions/activities@labs.mozilla.com
+    /path/to/firefox-bin -P test &
   
 You can build an xpi:
 
@@ -26,13 +26,6 @@ You can run the tests:
 
     make test
   
-
-If you want to run (using make run) in a specific profile:
-
-    FX_PROFILE=/path/to/firefox/profile make run
-  
-Tests cannot be run in a specific profile.
-
 
 Prepare your firefox profile
 -----------------------------
