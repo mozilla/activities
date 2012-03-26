@@ -14,11 +14,6 @@
 const {classes: Cc, interfaces: Ci, utils: Cu} = Components;
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
-var console = {
-  log: function(s) {
-    dump(s + "\n");
-  }
-};
 
 function TypedStorageImpl() {}
 TypedStorageImpl.prototype = {
@@ -57,7 +52,7 @@ function ObjectStore(objType, dbName) {
       dbConn.executeSimpleSQL("CREATE TABLE " + objType + " (action TEXT NOT NULL, origin TEXT NOT NULL, manifest TEXT, PRIMARY KEY(action, origin))");
     }
     catch (e) {
-      console.log("Error while creating table: " + e);
+      Cu.reportError("Error while creating table: " + e);
       throw e;
     }
   }
@@ -79,18 +74,18 @@ ObjectStore.prototype = {
         }
       },
       handleError: function(error) {
-        console.log("Error while selecting from table " + self._objType + ": " + error + "; " + self._dbConn.lastErrorString + " (" + this._dbConn.lastError + ")");
+        Cu.reportError("Error while selecting from table " + self._objType + ": " + error + "; " + self._dbConn.lastErrorString + " (" + this._dbConn.lastError + ")");
       },
       handleCompletion: function(reason) {
         getStatement.reset();
-        if (reason != Ci.mozIStorageStatementCallback.REASON_FINISHED) console.log("Get query canceled or aborted! " + reason);
+        if (reason != Ci.mozIStorageStatementCallback.REASON_FINISHED) 
+          Cu.reportError("Get query canceled or aborted! " + reason);
         else {
           try {
             cb(value);
           }
           catch (e) {
-            console.log("Error in completion callback for ObjectStore.get(): " + e);
-            console.log(e.stack);
+            Cu.reportError("Error in completion callback for ObjectStore.get(): " + e);
           }
         }
       }
@@ -144,17 +139,18 @@ ObjectStore.prototype = {
         }
       },
       handleError: function(error) {
-        console.log("Error while getting keys for " + self._objType + ": " + error + "; " + self._dbConn.lastErrorString + " (" + self._dbConn.lastError + ")");
+        Cu.reportError("Error while getting keys for " + self._objType + ": " + error + "; " + self._dbConn.lastErrorString + " (" + self._dbConn.lastError + ")");
       },
       handleCompletion: function(reason) {
         keyStatement.reset();
-        if (reason != Ci.mozIStorageStatementCallback.REASON_FINISHED) console.log("Keys query canceled or aborted! " + reason);
+        if (reason != Ci.mozIStorageStatementCallback.REASON_FINISHED) 
+          Cu.reportError("Keys query canceled or aborted! " + reason);
         else {
           try {
             cb(resultKeys);
           }
           catch (e) {
-            console.log("Error in completion callback for ObjectStore.keys(): " + e);
+            Cu.reportError("Error in completion callback for ObjectStore.keys(): " + e);
           }
         }
       }
@@ -180,18 +176,18 @@ ObjectStore.prototype = {
     statement.executeAsync({
       handleResult: function(result) {},
       handleError: function(error) {
-        console.log("Error while executing " + statement + "on" + self._objType + ": " + error + "; " + self._dbConn.lastErrorString + " (" + self._dbConn.lastError + ")");
+        Cu.reportError("Error while executing " + statement + "on" + self._objType + ": " + error + "; " + self._dbConn.lastErrorString + " (" + self._dbConn.lastError + ")");
       },
       handleCompletion: function(reason) {
         statement.reset();
-        if (reason != Ci.mozIStorageStatementCallback.REASON_FINISHED) console.log("Query canceled or aborted! " + reason);
+        if (reason != Ci.mozIStorageStatementCallback.REASON_FINISHED) 
+          Cu.reportError("Query canceled or aborted! " + reason);
         else {
           try {
             if (cb) cb(true);
           }
           catch (e) {
-            console.log("Error while invoking callback for " + statement + ": " + e);
-            console.log(e.stack);
+            Cu.reportError("Error while invoking callback for " + statement + ": " + e);
           }
         }
       }

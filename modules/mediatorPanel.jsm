@@ -28,12 +28,6 @@ const PREFS_ICON = "chrome://browser/skin/tabbrowser/newtab.png";
 XPCOMUtils.defineLazyServiceGetter(this, "activityRegistry",
   "@mozilla.org/activitiesRegistry;1", "mozIActivitiesRegistry");
 
-// temporary
-let console = {
-  log: function(s) {
-    dump(s + "\n");
-  }
-}
 
 /**
  * MediatorPanel
@@ -126,7 +120,6 @@ MediatorPanel.prototype = {
       serviceList.sort(function(a,b) a.frecency-b.frecency).reverse();
       try {
         var win = document.defaultView;
-        //console.log("postMessage to " + win.location.protocol + "//" + win.location.host);
         let data = JSON.stringify({
           topic: "handlers",
           data: serviceList
@@ -158,7 +151,6 @@ MediatorPanel.prototype = {
   },
   
   onMessage: function(event) {
-    //console.log("listener received " + event.data + " from "+ event.origin);
     // get the tab for the document on the event
     let msg = JSON.parse(event.data);
     if (msg.topic != 'activity' || !msg.data)
@@ -254,7 +246,6 @@ MediatorPanel.prototype = {
           topic: "activity",
           activity: this.tabData.activity
         });
-        //console.log("   data is " + data);
         win.postMessage(data, location);
       }
       catch(e) {
