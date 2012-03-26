@@ -23,13 +23,6 @@ Cu.import("resource://activities/modules/manifestDB.jsm");
 const NS_XUL = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 const FRECENCY = 100;
 
-// temporary
-let console = {
-  log: function(s) {
-    dump(s + "\n");
-  }
-}
-
 
 /**
  * activityRegistry is our internal api for web activities. It
@@ -52,7 +45,6 @@ function activityRegistry() {
   
   let self = this;
   ManifestDB.iterate(function(key, activity) {
-    //console.log("got manifest from manifestDB " + key + ": " + JSON.stringify(manifest));
     self._addActivity(activity);
   });
 }
@@ -212,10 +204,8 @@ activityRegistry.prototype = {
   
   importManifest: function ar_importManifest(aDocument, location, manifest,
                                              userRequestedInstall) {
-    // TODO: BUG 732259 we need a persistent storage container for manifest data
-    //console.log("got manifest " + JSON.stringify(manifest));
     if (!manifest.activities) {
-      console.log("invalid activities manifest");
+      Cu.reportError("invalid activities manifest");
       return;
     }
     
@@ -225,7 +215,6 @@ activityRegistry.prototype = {
         if (!svc.url || !svc.action)
           continue;
         svc.enabled = undefined; // ensure this is not set from the outside
-        //console.log("service: " + svc.url);
         svc.url = Services.io.newURI(location, null, null).resolve(svc.url);
         registry.registerActivityHandler(svc.action, svc.url, svc);
       }
@@ -237,12 +226,11 @@ activityRegistry.prototype = {
     else {
       let info = this._getUsefulness(location);
       if (!info.hasLogin && info.frecency < FRECENCY) {
-        //console.log("this site simply is not important, skip it");
+        // this site simply is not important, skip it
         return;
       }
       // we reached here because the user has a login or visits this site
       // often, so we want to offer an install to the user
-      //console.log("installing " + location + " because " + JSON.stringify(info));
       // prompt user for install
       var xulWindow = aDocument.defaultView
                                .QueryInterface(Ci.nsIInterfaceRequestor)
@@ -266,7 +254,6 @@ activityRegistry.prototype = {
     xhr.onreadystatechange = function(aEvt) {
       if (xhr.readyState == 4) {
         if (xhr.status == 200 || xhr.status == 0) {
-          //console.log("got response " + xhr.responseText);
           try {
             registry.importManifest(aDocument, url,
                                     JSON.parse(xhr.responseText),
@@ -277,11 +264,10 @@ activityRegistry.prototype = {
           }
         }
         else {
-          console.log("got status " + xhr.status);
+          Cu.reportError("Unable to load activities manifest, status " + xhr.status);
         }
       }
     };
-    //console.log("fetch " + url);
     xhr.send(null);
   },
   
@@ -301,7 +287,6 @@ activityRegistry.prototype = {
       let link = links[index];
       if (link.getAttribute('rel') == 'manifest' &&
           link.getAttribute('type') == 'text/json') {
-        //console.log("found manifest url " + link.getAttribute('href'));
         let baseUrl = Services.io.newURI(aDocument.defaultView.location.href,
                                          null, null);
         let url = baseUrl.resolve(link.getAttribute('href'));
@@ -321,7 +306,6 @@ activityRegistry.prototype = {
     if (aTopic == "document-element-inserted") {
       if (!aSubject.defaultView)
         return;
-      //console.log("new document " + aSubject.defaultView.location);
       this.discoverActivity(aSubject, aData);
       return;
     }
