@@ -8,15 +8,14 @@
 
 const {classes: Cc, interfaces: Ci, utils: Cu, resources: Cr} = Components;
 
+Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/PlacesUtils.jsm");
 
 const EXPORTED_SYMBOLS = ["hasLogin", "builtinActivities", "frecencyForUrl"];
 
 function hasLogin(hostname) {
   try {
-    var loginManager = Cc["@mozilla.org/login-manager;1"]
-                          .getService(Ci.nsILoginManager);
-    return loginManager.countLogins(hostname, "", "") > 0; 
+    return Services.logins.countLogins(hostname, "", "") > 0; 
   }
   catch(e) {
     Cu.reportError(e);
